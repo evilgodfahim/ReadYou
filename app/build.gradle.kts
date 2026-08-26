@@ -1,5 +1,3 @@
-import java.io.FileInputStream
-import java.util.Properties
 import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
 
 plugins {
@@ -12,27 +10,6 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.kotlin.parcelize)
-}
-
-fun fetchGitCommitHash(): String {
-    val process =
-        ProcessBuilder("git", "rev-parse", "--verify", "--short", "HEAD")
-            .redirectErrorStream(true)
-            .start()
-    return process.inputStream.bufferedReader().use { it.readText().trim() }
-}
-
-val gitCommitHash = fetchGitCommitHash()
-val keyProps = Properties()
-val releaseKeyPropsFile: File = rootProject.file("signature/keystore_release.properties")
-val debugKeyPropsFile: File = rootProject.file("signature/keystore.properties")
-
-
-if (releaseKeyPropsFile.exists()) {
-    println("Loading keystore properties from ${releaseKeyPropsFile.absolutePath}")
-    keyProps.load(FileInputStream(releaseKeyPropsFile))
-} else if (debugKeyPropsFile.exists()) {
-    keyProps.load(FileInputStream(debugKeyPropsFile))
 }
 
 android {
@@ -59,43 +36,26 @@ android {
         ksp { arg("room.incremental", "true") }
     }
 
-    flavorDimensions.add("channel")
-    productFlavors {
-        create("github") {
-            isDefault = true
-            dimension = "channel"
-        }
-        create("fdroid") { dimension = "channel" }
-        create("googlePlay") {
-            dimension = "channel"
-            applicationIdSuffix = ".google.play"
-        }
-    }
     signingConfigs {
-        create("release") {
-            keyAlias = keyProps["keyAlias"] as String?
-            keyPassword = keyProps["keyPassword"] as String?
-            storeFile = keyProps["storeFile"]?.let { file(it as String) }
-            storePassword = keyProps["storePassword"] as String?
+        create("debugConfig") {
+            storeFile = file("${rootDir}/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
         }
     }
     lint { disable.addAll(listOf("MissingTranslation", "ExtraTranslation")) }
     buildTypes {
-        getByName("release") {
+        debug {
+            signingConfig = signingConfigs.getByName("debugConfig")
+        }
+        release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            signingConfig = signingConfigs.getByName("release")
-        }
-        all { signingConfig = signingConfigs.getByName("release") }
-    }
-    applicationVariants.all {
-        outputs.all {
-            (this as com.android.build.gradle.internal.api.BaseVariantOutputImpl).outputFileName =
-                "ReadYou-${defaultConfig.versionName}-${gitCommitHash}.apk"
         }
     }
     kotlinOptions {

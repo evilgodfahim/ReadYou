@@ -1,0 +1,6 @@
+{
+  "name": "Read You",
+  "description": "An Material You designed RSS reader application",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
