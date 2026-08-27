@@ -46,10 +46,24 @@ private val PlayfairRegular =
         weight = FontWeight.W400,
     )
 
+private val PlayfairRegularItalic =
+    Font(
+        R.font.playfair_display,
+        weight = FontWeight.W400,
+        style = FontStyle.Italic,
+    )
+
 private val PlayfairMedium =
     Font(
         R.font.playfair_display,
         weight = FontWeight.W500,
+    )
+
+private val PlayfairMediumItalic =
+    Font(
+        R.font.playfair_display,
+        weight = FontWeight.W500,
+        style = FontStyle.Italic,
     )
 
 private val PlayfairSemiBold =
@@ -58,10 +72,24 @@ private val PlayfairSemiBold =
         weight = FontWeight.W600,
     )
 
+private val PlayfairSemiBoldItalic =
+    Font(
+        R.font.playfair_display,
+        weight = FontWeight.W600,
+        style = FontStyle.Italic,
+    )
+
 private val PlayfairBold =
     Font(
         R.font.playfair_display,
         weight = FontWeight.W700,
+    )
+
+private val PlayfairBoldItalic =
+    Font(
+        R.font.playfair_display,
+        weight = FontWeight.W700,
+        style = FontStyle.Italic,
     )
 
 private val NikoshRegular =
@@ -70,20 +98,40 @@ private val NikoshRegular =
         weight = FontWeight.W400,
     )
 
+private val NikoshRegularItalic =
+    Font(
+        R.font.nikosh,
+        weight = FontWeight.W400,
+        style = FontStyle.Italic,
+    )
+
 private val NikoshBold =
     Font(
         R.font.nikosh,
         weight = FontWeight.W700,
     )
 
+private val NikoshBoldItalic =
+    Font(
+        R.font.nikosh,
+        weight = FontWeight.W700,
+        style = FontStyle.Italic,
+    )
+
 val GlobalFontFamily =
     FontFamily(
-        NikoshRegular,
-        NikoshBold,
         PlayfairRegular,
+        PlayfairRegularItalic,
         PlayfairMedium,
+        PlayfairMediumItalic,
         PlayfairSemiBold,
+        PlayfairSemiBoldItalic,
         PlayfairBold,
+        PlayfairBoldItalic,
+        NikoshRegular,
+        NikoshRegularItalic,
+        NikoshBold,
+        NikoshBoldItalic,
     )
 
 val GoogleSansFontFamily = GlobalFontFamily

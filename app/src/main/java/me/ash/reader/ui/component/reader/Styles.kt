@@ -85,6 +85,7 @@ fun bodyStyle(): TextStyle =
             if (LocalReadingTextBold.current.value) FontWeight.SemiBold else FontWeight.Normal,
         fontSize = LocalReadingTextFontSize.current.sp,
         letterSpacing = LocalReadingTextLetterSpacing.current.sp,
+        lineHeight = LocalReadingTextLineHeight.current.sp,
         color = bodyForeground(),
         textAlign = LocalReadingTextAlign.current.toTextAlign(),
     )

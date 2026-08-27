@@ -39,3 +39,16 @@ jobs:
         with:
           name: ReadYou-Build-${{ github.sha }}
           path: app/build/outputs/apk/debug/ReadYou-${{ github.sha }}.apk
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: latest
+          name: Latest Build
+          body: "Automated build compiled from commit ${{ github.sha }}."
+          prerelease: false
+          files: app/build/outputs/apk/debug/ReadYou-${{ github.sha }}.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
