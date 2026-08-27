@@ -10,7 +10,7 @@ jobs:
           distribution: temurin
           java-version: 17
       - name: Show SHA
-        run: echo "Build SHA: ${{ github.sha }}"
+        run: echo "Build SHA ${{ github.sha }}"
       - uses: gradle/gradle-build-action@v2
       - run: gradle assembleDebug
       - name: Rename APK

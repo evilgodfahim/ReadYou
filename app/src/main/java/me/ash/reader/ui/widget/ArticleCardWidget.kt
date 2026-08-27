@@ -82,7 +82,7 @@ class ArticleCardWidget() : GlanceAppWidget() {
                     }
                 }
             }
-            .onFailure { Timber.e(it) }
+            .onFailure { if (it is java.util.concurrent.CancellationException) throw it else timber.log.Timber.e(it) }
     }
 
     @SuppressLint("RestrictedApi")

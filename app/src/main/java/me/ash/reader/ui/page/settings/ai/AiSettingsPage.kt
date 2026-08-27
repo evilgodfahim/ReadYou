@@ -30,6 +30,10 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import me.ash.reader.R
 import me.ash.reader.infrastructure.preference.*
+import me.ash.reader.infrastructure.preference.LocalAiSummarizationPrompt
+import me.ash.reader.infrastructure.preference.LocalAiChatPrompt
+import me.ash.reader.infrastructure.preference.AiSummarizationPromptPreference
+import me.ash.reader.infrastructure.preference.AiChatPromptPreference
 import me.ash.reader.ui.component.base.*
 import me.ash.reader.ui.ext.showToast
 import me.ash.reader.ui.ext.dataStore
@@ -59,6 +63,10 @@ fun AiSettingsPage(
     val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
 
+
+    val aiSummarizationPrompt = LocalAiSummarizationPrompt.current
+    val aiChatPrompt = LocalAiChatPrompt.current
+
     val aiBaseUrl = LocalAiBaseUrl.current
     val aiApiKey = LocalAiApiKey.current
     val aiModel = LocalAiModel.current
@@ -79,11 +87,44 @@ fun AiSettingsPage(
     var modelInput by remember(aiModel.value) { mutableStateOf(aiModel.value) }
     var apiKeyVisible by remember { mutableStateOf(false) }
 
+    var editPromptType by remember { mutableStateOf<String?>(null) }
+    var editPromptValue by remember { mutableStateOf("") }
+
     // Dialog state
     var showAddCustomProviderDialog by remember { mutableStateOf(false) }
     var customProviderName by remember { mutableStateOf("") }
     var customProviderUrl by remember { mutableStateOf("") }
     var customProviderModel by remember { mutableStateOf("") }
+
+
+    if (editPromptType != null) {
+        AlertDialog(
+            onDismissRequest = { editPromptType = null },
+            title = { Text(if (editPromptType == "summary") "Edit AI Summary Prompt" else "Edit Article Prompt") },
+            text = {
+                OutlinedTextField(
+                    value = editPromptValue,
+                    onValueChange = { editPromptValue = it },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp)
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    scope.launch {
+                        if (editPromptType == "summary") {
+                            context.dataStore.put("aiSummarizationPrompt", editPromptValue)
+                        } else {
+                            context.dataStore.put("aiChatPrompt", editPromptValue)
+                        }
+                        editPromptType = null
+                    }
+                }) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { editPromptType = null }) { Text("Cancel") }
+            }
+        )
+    }
 
     if (showAddCustomProviderDialog) {
         AlertDialog(
@@ -325,8 +366,12 @@ fun AiSettingsPage(
                 
                 ActionItemCard(
                     title = "AI Summary",
-                    subtitle = "Classify the article titled \"[ti...",
-                    isDefault = true
+                    subtitle = aiSummarizationPrompt.value.ifBlank { "Classify the article titled \"[ti..." },
+                    isDefault = aiSummarizationPrompt.value == AiSummarizationPromptPreference.default.value,
+                    onEdit = {
+                        editPromptValue = aiSummarizationPrompt.value
+                        editPromptType = "summary"
+                    }
                 )
             }
 
@@ -347,8 +392,12 @@ fun AiSettingsPage(
                 
                 ActionItemCard(
                     title = "Article",
-                    subtitle = "Please generate a comprehe...",
-                    isDefault = true
+                    subtitle = aiChatPrompt.value.ifBlank { "Please generate a comprehe..." },
+                    isDefault = aiChatPrompt.value == AiChatPromptPreference.default.value,
+                    onEdit = {
+                        editPromptValue = aiChatPrompt.value
+                        editPromptType = "chat"
+                    }
                 )
             }
         }
@@ -366,7 +415,7 @@ fun SectionTitle(title: String) {
 }
 
 @Composable
-fun ActionItemCard(title: String, subtitle: String, isDefault: Boolean) {
+fun ActionItemCard(title: String, subtitle: String, isDefault: Boolean, onEdit: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
@@ -394,7 +443,7 @@ fun ActionItemCard(title: String, subtitle: String, isDefault: Boolean) {
                 }
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
-            IconButton(onClick = {}) {
+            IconButton(onClick = onEdit) {
                 Icon(Icons.Rounded.MoreVert, contentDescription = null)
             }
         }
