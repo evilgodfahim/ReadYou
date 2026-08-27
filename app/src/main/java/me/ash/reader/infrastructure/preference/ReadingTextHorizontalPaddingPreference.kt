@@ -15,7 +15,7 @@ val LocalReadingTextHorizontalPadding =
 
 object ReadingTextHorizontalPaddingPreference {
 
-    const val default = 16
+    const val default = 10
 
     fun put(context: Context, scope: CoroutineScope, value: Int) {
         scope.launch {

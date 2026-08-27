@@ -1,5 +1,7 @@
 package me.ash.reader.ui.page.settings.ai
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +24,6 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.DragIndicator
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Save
@@ -54,10 +55,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -69,10 +67,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import java.util.UUID
 import kotlinx.coroutines.launch
 import me.ash.reader.R
-import me.ash.reader.infrastructure.preference.AiApiKeyPreference
 import me.ash.reader.infrastructure.preference.AiBaseUrlPreference
 import me.ash.reader.infrastructure.preference.AiChatPromptPreference
-import me.ash.reader.infrastructure.preference.AiModelPreference
 import me.ash.reader.infrastructure.preference.AiSummarizationPromptPreference
 import me.ash.reader.infrastructure.preference.CustomAiProvider
 import me.ash.reader.infrastructure.preference.CustomAiProvidersPreference
@@ -82,7 +78,6 @@ import me.ash.reader.infrastructure.preference.LocalAiChatPrompt
 import me.ash.reader.infrastructure.preference.LocalAiModel
 import me.ash.reader.infrastructure.preference.LocalAiSummarizationPrompt
 import me.ash.reader.infrastructure.preference.LocalCustomAiProviders
-import me.ash.reader.infrastructure.preference.updateAiConfigPresetState
 import me.ash.reader.ui.component.base.DisplayText
 import me.ash.reader.ui.component.base.FeedbackIconButton
 import me.ash.reader.ui.component.base.RYScaffold
@@ -166,34 +161,43 @@ fun AiSettingsPage(
         }
 
     var providerDropdownExpanded by remember { mutableStateOf(false) }
-    var apiKeyInput by remember(aiApiKey.value) { mutableStateOf(aiApiKey.value) }
-    var modelInput by remember(aiModel.value) { mutableStateOf(aiModel.value) }
+    var apiKeyInput by remember { mutableStateOf(aiApiKey.value) }
+    var modelInput by remember { mutableStateOf(aiModel.value) }
     var apiKeyVisible by remember { mutableStateOf(false) }
 
-    fun saveCurrentConfiguration(key: String = apiKeyInput, model: String = modelInput, provider: ProviderOption = selectedProvider) {
+    LaunchedEffect(aiApiKey.value) {
+        if (apiKeyInput.isEmpty() && aiApiKey.value.isNotEmpty()) {
+            apiKeyInput = aiApiKey.value
+        }
+    }
+
+    LaunchedEffect(aiModel.value) {
+        if (modelInput.isEmpty() && aiModel.value.isNotEmpty()) {
+            modelInput = aiModel.value
+        }
+    }
+
+    fun saveCurrentConfiguration(
+        key: String = apiKeyInput,
+        model: String = modelInput,
+        provider: ProviderOption = selectedProvider,
+    ) {
         val trimmedKey = key.trim()
         val trimmedModel = model.trim().ifEmpty { provider.defaultModel }
         val normalizedUrl = AiBaseUrlPreference.normalize(provider.defaultBaseUrl)
 
-        scope.launch {
-            context.dataStore.put(DataStoreKey.aiApiKey, trimmedKey)
-            context.dataStore.put(DataStoreKey.aiModel, trimmedModel)
-            context.dataStore.put(DataStoreKey.aiBaseUrl, normalizedUrl)
+        aiSettingsViewModel.persistAiConfiguration(
+            context = context.applicationContext,
+            apiKey = trimmedKey,
+            model = trimmedModel,
+            baseUrl = normalizedUrl,
+            providerTitle = provider.title,
+        )
+    }
 
-            context.updateAiConfigPresetState { currentState ->
-                val updatedPresets = currentState.presets.map { preset ->
-                    if (preset.id == currentState.currentPresetId) {
-                        preset.copy(
-                            baseUrl = normalizedUrl,
-                            apiKey = trimmedKey,
-                            model = trimmedModel,
-                            provider = provider.title
-                        )
-                    } else preset
-                }
-                currentState.copy(presets = updatedPresets)
-            }
-        }
+    BackHandler {
+        saveCurrentConfiguration()
+        onBack()
     }
 
     DisposableEffect(Unit) {
@@ -416,8 +420,10 @@ fun AiSettingsPage(
                             modifier = Modifier.menuAnchor().fillMaxWidth(),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                             ),
                         )
                         ExposedDropdownMenu(
@@ -489,8 +495,8 @@ fun AiSettingsPage(
                         visualTransformation =
                             if (apiKeyVisible) VisualTransformation.None
                             else PasswordVisualTransformation(),
-                        minLines = 2,
-                        maxLines = 6,
+                        minLines = 3,
+                        maxLines = 15,
                         singleLine = false,
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = {
@@ -518,11 +524,14 @@ fun AiSettingsPage(
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                         ),
                         modifier =
                             Modifier.fillMaxWidth()
+                                .animateContentSize()
                                 .padding(horizontal = 16.dp, vertical = 4.dp),
                     )
 
@@ -566,8 +575,10 @@ fun AiSettingsPage(
                             }
                         },
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f),
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                         ),
                         modifier =
                             Modifier.fillMaxWidth()
@@ -648,8 +659,7 @@ fun ActionItemCard(
         shape = RoundedCornerShape(12.dp),
         colors =
             CardDefaults.cardColors(
-                containerColor =
-                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
             ),
     ) {
         Row(

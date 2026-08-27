@@ -126,7 +126,7 @@ constructor(
 
         val articleContent =
             readerCacheHelper
-                .readFullContent(articleId = task.articleId, accountId = task.accountId)
+                .readOrFetchFullContent(article = articleWithFeed.article, accountId = task.accountId)
                 .getOrNull()
                 ?.takeIf { it.isNotBlank() }
                 ?: articleWithFeed.article.rawDescription.takeIf { it.isNotBlank() }
@@ -140,6 +140,8 @@ constructor(
                     apiKey = settings.aiApiKey.randomValue,
                     model = settings.aiModel.value.ifEmpty { "gpt-3.5-turbo" },
                     prompt = resolveAiSummarizationPrompt(settings.aiSummarizationPrompt.value),
+                    articleTitle = articleWithFeed.article.title,
+                    feedName = articleWithFeed.feed.name,
                     articleContent = articleContent,
                 )
         ) {

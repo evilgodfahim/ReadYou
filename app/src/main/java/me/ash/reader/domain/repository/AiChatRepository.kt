@@ -14,6 +14,7 @@ import me.ash.reader.infrastructure.net.openai.OpenAiResponsesResponse
 import me.ash.reader.infrastructure.net.openai.ResponseInputMessage
 import me.ash.reader.infrastructure.net.openai.ResponseOutputAnnotation
 import me.ash.reader.infrastructure.net.openai.ResponseTool
+import me.ash.reader.infrastructure.preference.AiPromptFormatter
 
 @Singleton
 class AiChatRepository @Inject constructor() {
@@ -230,6 +231,10 @@ class AiChatRepository @Inject constructor() {
                     prompt = prompt,
                     hasSelectedSnippet = !selectedSnippet.isNullOrBlank(),
                     includeFullContent = includeFullContent,
+                    articleTitle = articleTitle,
+                    feedName = feedName,
+                    articleLink = articleLink,
+                    articleContent = articleContent,
                 ),
             input =
                 buildResponsesInputMessages(
@@ -341,6 +346,10 @@ class AiChatRepository @Inject constructor() {
                             prompt = prompt,
                             hasSelectedSnippet = !selectedSnippet.isNullOrBlank(),
                             includeFullContent = includeFullContent,
+                            articleTitle = articleTitle,
+                            feedName = feedName,
+                            articleLink = articleLink,
+                            articleContent = articleContent,
                         ),
                 )
             )
@@ -367,6 +376,10 @@ class AiChatRepository @Inject constructor() {
         prompt: String,
         hasSelectedSnippet: Boolean,
         includeFullContent: Boolean,
+        articleTitle: String = "",
+        feedName: String = "",
+        articleLink: String? = null,
+        articleContent: String = "",
     ): String =
         buildString {
             append(
@@ -374,6 +387,10 @@ class AiChatRepository @Inject constructor() {
                     prompt = prompt,
                     hasSelectedSnippet = hasSelectedSnippet,
                     includeFullContent = includeFullContent,
+                    articleTitle = articleTitle,
+                    feedName = feedName,
+                    articleLink = articleLink,
+                    articleContent = articleContent,
                 )
             )
             appendLine()
@@ -386,21 +403,20 @@ class AiChatRepository @Inject constructor() {
         prompt: String,
         hasSelectedSnippet: Boolean,
         includeFullContent: Boolean,
-    ): String =
-        buildString {
-            appendLine(prompt)
-            appendLine()
-            appendLine("补充要求：")
-            appendLine("- 用简体中文回答")
-            appendLine("- 优先直接回答用户当前问题")
-            if (hasSelectedSnippet) {
-                appendLine("- 如果提供了用户当前选中的内容，优先围绕选中内容回答")
-            }
-            if (includeFullContent) {
-                appendLine("- 如果提供了文章全文，可将全文作为背景参考，但不要偏离当前问题")
-            }
-            appendLine("- 不确定时明确说明，不要编造")
-        }.trim()
+        articleTitle: String = "",
+        feedName: String = "",
+        articleLink: String? = null,
+        articleContent: String = "",
+    ): String {
+        val formatted = AiPromptFormatter.formatPrompt(
+            template = prompt,
+            title = articleTitle,
+            content = if (includeFullContent) articleContent else "",
+            feedName = feedName,
+            url = articleLink.orEmpty(),
+        )
+        return formatted.trim()
+    }
 
     private fun buildResponsesInputMessages(
         articleTitle: String,

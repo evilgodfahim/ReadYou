@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.FiberManualRecord
@@ -157,10 +158,10 @@ fun ArticleItem(
     Column(
         modifier =
             modifier
-                .padding(horizontal = 6.dp, vertical = 2.dp)
-                .clip(Shape20)
+                .padding(horizontal = 4.dp, vertical = 1.dp)
+                .clip(RoundedCornerShape(12.dp))
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-                .padding(horizontal = 10.dp, vertical = 8.dp)
+                .padding(horizontal = 8.dp, vertical = 6.dp)
                 .alpha(
                     when (articleListReadIndicator) {
                         FlowArticleReadIndicatorPreference.None -> 1f

@@ -458,6 +458,7 @@ constructor(
     val readerStateStateFlow = _readerState.asStateFlow()
     private val isAiSummaryCardVisible = MutableStateFlow(true)
     private val translationFocusIndex = MutableStateFlow(0)
+    private var aiSummaryJob: Job? = null
     private var translationJob: Job? = null
     private var translationStateJob: Job? = null
     private var aiChatSessionJob: Job? = null
@@ -475,6 +476,7 @@ constructor(
         get() = readingUiState.value.articleWithFeed?.feed
 
     fun initData(articleId: String, listIndex: Int? = null) {
+        cancelAiSummaryJob()
         cancelPendingAiSummaryFlush()
         cancelTranslationJob()
         aiChatSessionJob?.cancel()
@@ -517,6 +519,7 @@ constructor(
     }
 
     fun clearReadingData() {
+        cancelAiSummaryJob()
         cancelTranslationJob()
         translationStateJob?.cancel()
         translationStateJob = null
@@ -659,7 +662,7 @@ constructor(
     }
 
     fun autoSummarizeCurrentArticle() {
-        requestAiSummary(SummaryTrigger.AUTO)
+        // Disabled: AI summary is manual-only per user preference
     }
 
     fun translateCurrentArticle() {
@@ -671,104 +674,122 @@ constructor(
     }
 
     private fun requestAiSummary(trigger: SummaryTrigger) {
-        if (readingUiState.value.isAiSummaryLoading) return
-        viewModelScope.launch {
-            val articleId = currentArticle?.id ?: return@launch
-            val currentState = readingUiState.value
-            val articleContent =
-                readerStateStateFlow.value.content.text?.takeIf { it.isNotBlank() }
-                    ?: currentArticle?.rawDescription
-                    ?: ""
-            val settings = settingsProvider.settings
-            val keepInlineVisible = currentState.shouldRenderAiSummaryInline
-            val keepInlineExpanded = keepInlineVisible && currentState.isAiSummaryExpanded
-            val isAutoTrigger = trigger == SummaryTrigger.AUTO
+        if (aiSummaryJob?.isActive == true || readingUiState.value.isAiSummaryLoading) return
+        val job =
+            viewModelScope.launch {
+                val targetArticle = currentArticle ?: return@launch
+                val articleId = targetArticle.id
+                val currentState = readingUiState.value
+                val settings = settingsProvider.settings
 
-            _readingUiState.update {
-                it.copy(
-                    isAiSummaryLoading = true,
-                    isAiSummaryInlineLoading = keepInlineExpanded,
-                    aiSummaryError = null,
-                    isAiSummaryExpanded = keepInlineExpanded,
-                    shouldShowAiSummaryReadyPrompt = false,
-                    hasAutoAiSummaryAttempted = it.hasAutoAiSummaryAttempted || isAutoTrigger,
-                )
-            }
-
-            if (settings.aiApiKey.randomValue.isEmpty() || settings.aiBaseUrl.value.isEmpty()) {
-                updateAiSummaryStateIfCurrent(articleId) { state ->
-                    state.copy(
-                        isAiSummaryLoading = false,
-                        isAiSummaryInlineLoading = false,
-                        aiSummaryError =
-                            if (isAutoTrigger) null else "Please configure API URL and key first",
+                _readingUiState.update {
+                    it.copy(
+                        isAiSummaryLoading = true,
+                        isAiSummaryInlineLoading = true,
+                        aiSummaryError = null,
+                        isAiSummaryExpanded = true,
+                        shouldRenderAiSummaryInline = true,
+                        shouldShowAiSummaryReadyPrompt = false,
                     )
                 }
-                return@launch
+
+                if (settings.aiApiKey.randomValue.isEmpty() || settings.aiBaseUrl.value.isEmpty()) {
+                    updateAiSummaryStateIfCurrent(articleId) { state ->
+                        state.copy(
+                            isAiSummaryLoading = false,
+                            isAiSummaryInlineLoading = false,
+                            aiSummaryError = "Please configure API URL and key first",
+                        )
+                    }
+                    return@launch
+                }
+
+                // Ensure full text is fetched before creating the summary
+                val cachedFull = readerCacheHelper.readFullContent(targetArticle.id).getOrNull()
+                val fullContent = if (!cachedFull.isNullOrBlank()) {
+                    cachedFull
+                } else {
+                    readerCacheHelper.readOrFetchFullContent(targetArticle).getOrNull()
+                }
+
+                val articleContent = fullContent?.takeIf { it.isNotBlank() }
+                    ?: readerStateStateFlow.value.content.text?.takeIf { it.isNotBlank() }
+                    ?: targetArticle.rawDescription
+                    ?: ""
+
+                if (fullContent != null && _readerState.value.content !is ReaderState.FullContent) {
+                    _readerState.update {
+                        it.copy(content = ReaderState.FullContent(fullContent))
+                    }
+                }
+
+                val feedTitle = readingUiState.value.articleWithFeed?.feed?.name.orEmpty()
+
+                // Perform 1 API call per click
+                val result = aiSummaryRepository.summarizeArticle(
+                    baseUrl = settings.aiBaseUrl.value,
+                    apiKey = settings.aiApiKey.randomValue,
+                    model = settings.aiModel.value.ifEmpty { "gpt-3.5-turbo" },
+                    prompt = resolveAiSummarizationPrompt(settings.aiSummarizationPrompt.value),
+                    articleTitle = targetArticle.title,
+                    feedName = feedTitle,
+                    articleContent = articleContent
+                )
+
+                when (result) {
+                    is me.ash.reader.infrastructure.net.ApiResult.Success -> {
+                        // Replace previous summary with newly generated one
+                        rememberPendingAiSummary(articleId = articleId, aiSummary = result.data)
+                        val updatedArticleWithFeed =
+                            readingUiState.value.articleWithFeed?.copy(
+                                article = (currentArticle ?: return@launch).copy(aiSummary = result.data)
+                            )
+                        updateAiSummaryStateIfCurrent(articleId) { state ->
+                            state.copy(
+                                articleWithFeed = updatedArticleWithFeed,
+                                aiSummary = result.data,
+                                isAiSummaryLoading = false,
+                                isAiSummaryInlineLoading = false,
+                                aiSummaryError = null,
+                                isAiSummaryExpanded = true,
+                                shouldRenderAiSummaryInline = true,
+                                shouldShowAiSummaryReadyPrompt = false,
+                            )
+                        }
+                    }
+                    is me.ash.reader.infrastructure.net.ApiResult.BizError -> {
+                        updateAiSummaryStateIfCurrent(articleId) { state ->
+                            state.copy(
+                                isAiSummaryLoading = false,
+                                isAiSummaryInlineLoading = false,
+                                aiSummaryError = result.exception.message ?: "Business error",
+                            )
+                        }
+                    }
+                    is me.ash.reader.infrastructure.net.ApiResult.NetworkError -> {
+                        updateAiSummaryStateIfCurrent(articleId) { state ->
+                            state.copy(
+                                isAiSummaryLoading = false,
+                                isAiSummaryInlineLoading = false,
+                                aiSummaryError = result.exception.message ?: "Network error",
+                            )
+                        }
+                    }
+                    is me.ash.reader.infrastructure.net.ApiResult.UnknownError -> {
+                        updateAiSummaryStateIfCurrent(articleId) { state ->
+                            state.copy(
+                                isAiSummaryLoading = false,
+                                isAiSummaryInlineLoading = false,
+                                aiSummaryError = result.throwable.message ?: "Unknown error",
+                            )
+                        }
+                    }
+                }
             }
-
-            val result = aiSummaryRepository.summarizeArticle(
-                baseUrl = settings.aiBaseUrl.value,
-                apiKey = settings.aiApiKey.randomValue,
-                model = settings.aiModel.value.ifEmpty { "gpt-3.5-turbo" },
-                prompt = resolveAiSummarizationPrompt(settings.aiSummarizationPrompt.value),
-                articleContent = articleContent
-            )
-
-            when (result) {
-                is me.ash.reader.infrastructure.net.ApiResult.Success -> {
-                    rememberPendingAiSummary(articleId = articleId, aiSummary = result.data)
-                    val updatedArticleWithFeed =
-                        readingUiState.value.articleWithFeed?.copy(
-                            article = (currentArticle ?: return@launch).copy(aiSummary = result.data)
-                        )
-                    updateAiSummaryStateIfCurrent(articleId) { state ->
-                        val shouldExpandInlineSummary = isAiSummaryCardVisible.value
-                        state.copy(
-                            articleWithFeed = updatedArticleWithFeed,
-                            aiSummary = result.data,
-                            isAiSummaryLoading = false,
-                            isAiSummaryInlineLoading = false,
-                            aiSummaryError = null,
-                            isAiSummaryExpanded = shouldExpandInlineSummary,
-                            shouldRenderAiSummaryInline = shouldExpandInlineSummary,
-                            shouldShowAiSummaryReadyPrompt = !shouldExpandInlineSummary,
-                        )
-                    }
-                }
-                is me.ash.reader.infrastructure.net.ApiResult.BizError -> {
-                    updateAiSummaryStateIfCurrent(articleId) { state ->
-                        state.copy(
-                            isAiSummaryLoading = false,
-                            isAiSummaryInlineLoading = false,
-                            aiSummaryError =
-                                if (isAutoTrigger) null
-                                else result.exception.message ?: "Business error",
-                        )
-                    }
-                }
-                is me.ash.reader.infrastructure.net.ApiResult.NetworkError -> {
-                    updateAiSummaryStateIfCurrent(articleId) { state ->
-                        state.copy(
-                            isAiSummaryLoading = false,
-                            isAiSummaryInlineLoading = false,
-                            aiSummaryError =
-                                if (isAutoTrigger) null
-                                else result.exception.message ?: "Network error",
-                        )
-                    }
-                }
-                is me.ash.reader.infrastructure.net.ApiResult.UnknownError -> {
-                    updateAiSummaryStateIfCurrent(articleId) { state ->
-                        state.copy(
-                            isAiSummaryLoading = false,
-                            isAiSummaryInlineLoading = false,
-                            aiSummaryError =
-                                if (isAutoTrigger) null
-                                else result.throwable.message ?: "Unknown error",
-                        )
-                    }
-                }
+        aiSummaryJob = job
+        job.invokeOnCompletion {
+            if (aiSummaryJob === job) {
+                aiSummaryJob = null
             }
         }
     }
@@ -1411,6 +1432,11 @@ constructor(
 
     fun updateAiSummaryCardVisible(isVisible: Boolean) {
         isAiSummaryCardVisible.value = isVisible
+    }
+
+    private fun cancelAiSummaryJob() {
+        aiSummaryJob?.cancel()
+        aiSummaryJob = null
     }
 
     private fun cancelTranslationJob() {

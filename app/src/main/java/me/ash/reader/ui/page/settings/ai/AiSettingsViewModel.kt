@@ -20,6 +20,7 @@ import me.ash.reader.infrastructure.preference.readAiConfigPresetState
 import me.ash.reader.infrastructure.preference.readLegacyAiConfigPresetState
 import me.ash.reader.infrastructure.preference.updateAiConfigPresetState
 import me.ash.reader.ui.ext.dataStore
+import me.ash.reader.ui.ext.put
 import me.ash.reader.infrastructure.net.ApiResult
 
 private const val DEFAULT_PRESET_COPY_SUFFIX = "Copy"
@@ -93,6 +94,50 @@ class AiSettingsViewModel @Inject constructor(
                 )
             }
             onComplete()
+        }
+    }
+
+    fun persistAiConfiguration(
+        context: Context,
+        apiKey: String,
+        model: String,
+        baseUrl: String,
+        providerTitle: String,
+    ) {
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.NonCancellable) {
+            context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiApiKey, apiKey)
+            context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiModel, model)
+            context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiBaseUrl, baseUrl)
+
+            context.updateAiConfigPresetState { currentState ->
+                val currentPresetId = currentState.currentPresetId.ifBlank { "default_preset" }
+                val exists = currentState.presets.any { it.id == currentPresetId }
+                val updatedPresets = if (exists) {
+                    currentState.presets.map { preset ->
+                        if (preset.id == currentPresetId) {
+                            preset.copy(
+                                baseUrl = baseUrl,
+                                apiKey = apiKey,
+                                model = model,
+                                provider = providerTitle,
+                            )
+                        } else preset
+                    }
+                } else {
+                    currentState.presets + AiConfigPreset(
+                        id = currentPresetId,
+                        name = providerTitle,
+                        baseUrl = baseUrl,
+                        apiKey = apiKey,
+                        model = model,
+                        provider = providerTitle,
+                    )
+                }
+                currentState.copy(
+                    presets = updatedPresets,
+                    currentPresetId = currentPresetId,
+                )
+            }
         }
     }
 

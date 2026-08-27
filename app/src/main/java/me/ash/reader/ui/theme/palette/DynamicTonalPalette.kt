@@ -66,6 +66,18 @@ fun dynamicDarkColorScheme(): ColorScheme {
     val palettes = LocalTonalPalettes.current
     val useAmoledDarkTheme = LocalAmoledDarkTheme.current.value
 
+    // Kindle / Apple Books inspired eye-soothing dark theme:
+    // Warm, deep background tones and soft bone/linen off-white typography to avoid eye strain.
+    val soothingOnSurface = Color(0xFFE8E5DF)
+    val soothingOnSurfaceVariant = Color(0xFFCBC7BE)
+    val soothingBackground = if (useAmoledDarkTheme) Color.Black else Color(0xFF131315)
+    val soothingSurface = if (useAmoledDarkTheme) Color.Black else Color(0xFF17171A)
+    val soothingSurfaceContainerLowest = if (useAmoledDarkTheme) Color.Black else Color(0xFF0F0F11)
+    val soothingSurfaceContainerLow = if (useAmoledDarkTheme) Color(0xFF121214) else Color(0xFF1A1A1D)
+    val soothingSurfaceContainer = if (useAmoledDarkTheme) Color(0xFF161619) else Color(0xFF1F1F23)
+    val soothingSurfaceContainerHigh = if (useAmoledDarkTheme) Color(0xFF1D1D21) else Color(0xFF26262B)
+    val soothingSurfaceContainerHighest = if (useAmoledDarkTheme) Color(0xFF242429) else Color(0xFF2D2D33)
+
     return darkColorScheme(
         primary = palettes primary 80,
         onPrimary = palettes primary 20,
@@ -80,24 +92,24 @@ fun dynamicDarkColorScheme(): ColorScheme {
         onTertiary = palettes tertiary 20,
         tertiaryContainer = palettes tertiary 30,
         onTertiaryContainer = palettes tertiary 90,
-        background = palettes neutral 10,
-        onBackground = palettes neutral 90,
-        surface = palettes neutral 6,
-        onSurface = palettes neutral 90,
+        background = soothingBackground,
+        onBackground = soothingOnSurface,
+        surface = soothingSurface,
+        onSurface = soothingOnSurface,
         surfaceVariant = palettes neutralVariant 30,
-        onSurfaceVariant = palettes neutralVariant 80,
+        onSurfaceVariant = soothingOnSurfaceVariant,
         surfaceTint = palettes primary 80,
-        inverseSurface = palettes neutral 90,
-        inverseOnSurface = palettes neutral 20,
-        outline = palettes neutralVariant 60,
-        outlineVariant = palettes neutralVariant 30,
-        surfaceBright = palettes neutral 24,
-        surfaceDim = palettes neutral 6,
-        surfaceContainerLowest = palettes neutral 4,
-        surfaceContainerLow = palettes neutral 10,
-        surfaceContainer = palettes neutral 12,
-        surfaceContainerHigh = palettes neutral 17,
-        surfaceContainerHighest = palettes neutral 22,
+        inverseSurface = Color(0xFFE8E5DF),
+        inverseOnSurface = Color(0xFF1C1B1A),
+        outline = Color(0xFF484643),
+        outlineVariant = Color(0xFF302F2D),
+        surfaceBright = Color(0xFF36353B),
+        surfaceDim = soothingSurface,
+        surfaceContainerLowest = soothingSurfaceContainerLowest,
+        surfaceContainerLow = soothingSurfaceContainerLow,
+        surfaceContainer = soothingSurfaceContainer,
+        surfaceContainerHigh = soothingSurfaceContainerHigh,
+        surfaceContainerHighest = soothingSurfaceContainerHighest,
         primaryFixed = palettes primary 90,
         onPrimaryFixed = palettes primary 10,
         primaryFixedDim = palettes primary 90,
@@ -110,16 +122,7 @@ fun dynamicDarkColorScheme(): ColorScheme {
         onTertiaryFixed = palettes tertiary 10,
         tertiaryFixedDim = palettes tertiary 90,
         onTertiaryFixedVariant = palettes tertiary 30
-    ).run {
-        if (useAmoledDarkTheme) copy(
-            surface = Color.Black,
-            surfaceContainerHighest = palettes neutral 8,
-            surfaceContainerHigh = palettes neutral 6,
-            surfaceContainer = palettes neutral 4,
-            surfaceContainerLow = palettes neutral 4,
-            surfaceContainerLowest = Color.Black,
-        ) else this
-    }
+    )
 }
 
 @Composable

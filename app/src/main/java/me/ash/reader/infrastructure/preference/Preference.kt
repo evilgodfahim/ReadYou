@@ -111,17 +111,20 @@ fun Preferences.toSettings(): Settings {
         // AI
         aiConfigPresets = presetState?.presets.orEmpty(),
         aiCurrentPresetId = presetState?.currentPresetId.orEmpty(),
-        aiBaseUrl = AiBaseUrlPreference.fromPreferences(this).let { pref ->
-            if (pref.value != AiBaseUrlPreference.DEFAULT_BASE_URL) pref
-            else currentPreset?.let { AiBaseUrlPreference(it.baseUrl) } ?: pref
+        aiBaseUrl = run {
+            val direct = (DataStoreKey.keys[DataStoreKey.aiBaseUrl]?.key as? Preferences.Key<String>)?.let { this[it] }
+            if (!direct.isNullOrBlank()) AiBaseUrlPreference(direct)
+            else currentPreset?.let { AiBaseUrlPreference(it.baseUrl) } ?: AiBaseUrlPreference.default
         },
-        aiApiKey = AiApiKeyPreference.fromPreferences(this).let { pref ->
-            if (pref.value.isNotBlank()) pref
-            else currentPreset?.let { AiApiKeyPreference(it.apiKey) } ?: pref
+        aiApiKey = run {
+            val direct = (DataStoreKey.keys[DataStoreKey.aiApiKey]?.key as? Preferences.Key<String>)?.let { this[it] }
+            if (!direct.isNullOrBlank()) AiApiKeyPreference(direct)
+            else currentPreset?.let { AiApiKeyPreference(it.apiKey) } ?: AiApiKeyPreference.default
         },
-        aiModel = AiModelPreference.fromPreferences(this).let { pref ->
-            if (pref.value.isNotBlank()) pref
-            else currentPreset?.let { AiModelPreference(it.model) } ?: pref
+        aiModel = run {
+            val direct = (DataStoreKey.keys[DataStoreKey.aiModel]?.key as? Preferences.Key<String>)?.let { this[it] }
+            if (!direct.isNullOrBlank()) AiModelPreference(direct)
+            else currentPreset?.let { AiModelPreference(it.model) } ?: AiModelPreference.default
         },
         aiSummarizationPrompt = AiSummarizationPromptPreference.fromPreferences(this),
         aiCommuteBriefRecommendationPrompt = AiCommuteBriefRecommendationPromptPreference.fromPreferences(this),

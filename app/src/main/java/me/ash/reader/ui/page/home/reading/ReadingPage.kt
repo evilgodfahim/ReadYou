@@ -217,22 +217,6 @@ fun ReadingPage(
 
     LaunchedEffect(
         readerState.articleId,
-        readingUiState.articleWithFeed?.feed?.isAutoSummary,
-        readingUiState.shouldAutoGenerateAiSummary,
-    ) {
-        if (
-            readerState.articleId != null &&
-                shouldAutoSummarize(
-                    feedAutoSummary = readingUiState.articleWithFeed?.feed?.isAutoSummary == true,
-                    state = readingUiState,
-                )
-        ) {
-            viewModel.autoSummarizeCurrentArticle()
-        }
-    }
-
-    LaunchedEffect(
-        readerState.articleId,
         readerState.content.text,
         readingUiState.articleWithFeed?.feed?.isTranslationEnabled,
         readingUiState.articleWithFeed?.feed?.isAutoTranslate,

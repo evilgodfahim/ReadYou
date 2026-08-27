@@ -64,7 +64,7 @@ fun Metadata(
         modifier =
             modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp)
+                .padding(horizontal = 4.dp, vertical = 2.dp)
     ) {
         Text(
             modifier = Modifier.fillMaxWidth(),

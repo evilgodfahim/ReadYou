@@ -14,5 +14,4 @@ val DEFAULT_AI_SUMMARIZATION_PROMPT =
 fun resolveAiSummarizationPrompt(prompt: String): String =
     prompt.ifBlank { DEFAULT_AI_SUMMARIZATION_PROMPT }
 
-fun shouldAutoSummarize(feedAutoSummary: Boolean, state: ReadingUiState): Boolean =
-    feedAutoSummary && state.shouldAutoGenerateAiSummary
+fun shouldAutoSummarize(feedAutoSummary: Boolean, state: ReadingUiState): Boolean = false
