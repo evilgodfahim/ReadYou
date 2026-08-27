@@ -1,5 +1,6 @@
 package me.ash.reader.domain.model.article
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
@@ -18,6 +19,7 @@ import me.ash.reader.domain.model.feed.Feed
 data class ArchivedArticle(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
+    @ColumnInfo(index = true)
     val feedId: String,
     val link: String
 )

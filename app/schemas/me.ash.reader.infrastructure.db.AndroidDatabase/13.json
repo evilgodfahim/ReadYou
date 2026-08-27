@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 13,
-    "identityHash": "065b2ee7029b2487e902a2c2a47a286a",
+    "identityHash": "b7ecce10c73c9e21a900e06dc6540358",
     "entities": [
       {
         "tableName": "account",
@@ -427,6 +427,17 @@
             "id"
           ]
         },
+        "indices": [
+          {
+            "name": "index_archived_article_feedId",
+            "unique": false,
+            "columnNames": [
+              "feedId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_archived_article_feedId` ON `${TABLE_NAME}` (`feedId`)"
+          }
+        ],
         "foreignKeys": [
           {
             "table": "feed",
@@ -650,7 +661,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '065b2ee7029b2487e902a2c2a47a286a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b7ecce10c73c9e21a900e06dc6540358')"
     ]
   }
 }

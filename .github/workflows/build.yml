@@ -17,6 +17,17 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
       - name: Make gradlew executable
         run: chmod +x gradlew
+      - name: Setup Keystore
+        env:
+          DEBUG_KEYSTORE_BASE64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$DEBUG_KEYSTORE_BASE64" ]; then
+            echo "Restoring keystore from GitHub Secret..."
+            echo "$DEBUG_KEYSTORE_BASE64" | base64 --decode > debug.keystore
+          elif [ ! -f debug.keystore ]; then
+            echo "Keystore secret not found, generating temporary debug keystore..."
+            keytool -genkeypair -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
       - name: Build APK with Gradle Wrapper
         run: ./gradlew assembleDebug
       - name: Rename APK
