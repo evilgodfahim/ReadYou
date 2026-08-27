@@ -55,6 +55,11 @@ sealed interface Route : NavKey {
     // Interaction
     @Serializable data object Interaction : Route
 
+    // AI
+    @Serializable data object AiSettings : Route
+    @Serializable data object AiPresetManager : Route
+    @Serializable data object BackupRestore : Route
+
     // Languages
     @Serializable data object Languages : Route
 

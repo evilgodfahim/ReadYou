@@ -45,7 +45,7 @@ sealed class DarkThemePreference(val value: Int) : Preference() {
 
     companion object {
 
-        val default = UseDeviceTheme
+        val default = ON
         val values = listOf(UseDeviceTheme, ON, OFF)
 
         fun fromPreferences(preferences: Preferences) =

@@ -206,7 +206,7 @@ fun ArticleCard(
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                             ),
-                        maxLines = 6,
+                        maxLines = Int.MAX_VALUE,
                     )
                 }
             }

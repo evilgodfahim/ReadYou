@@ -140,6 +140,9 @@ fun SubscribeDialog(
                                 selectedAllowNotificationPreset = state.notification,
                                 selectedParseFullContentPreset = state.fullContent,
                                 selectedOpenInBrowserPreset = state.browser,
+                                selectedTranslationEnabledPreset = state.translationEnabled,
+                                selectedAutoTranslatePreset = state.autoTranslate,
+                                selectedAutoSummaryPreset = state.autoSummary,
                                 selectedGroupId = state.selectedGroupId,
                                 allowNotificationPresetOnClick = {
                                     subscribeViewModel.toggleAllowNotificationPreset()
@@ -149,6 +152,15 @@ fun SubscribeDialog(
                                 },
                                 openInBrowserPresetOnClick = {
                                     subscribeViewModel.toggleOpenInBrowserPreset()
+                                },
+                                translationEnabledPresetOnClick = {
+                                    subscribeViewModel.toggleTranslationEnabledPreset()
+                                },
+                                autoTranslatePresetOnClick = {
+                                    subscribeViewModel.toggleAutoTranslatePreset()
+                                },
+                                autoSummaryPresetOnClick = {
+                                    subscribeViewModel.toggleAutoSummaryPreset()
                                 },
                                 onGroupClick = {
                                     subscribeViewModel.selectedGroup(it)

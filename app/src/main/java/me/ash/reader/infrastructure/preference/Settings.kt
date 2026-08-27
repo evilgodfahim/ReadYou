@@ -50,6 +50,9 @@ data class Settings(
     val readingTheme: ReadingThemePreference = ReadingThemePreference.default,
     val readingPageTonalElevation: ReadingPageTonalElevationPreference = ReadingPageTonalElevationPreference.default,
     val readingAutoHideToolbar: ReadingAutoHideToolbarPreference = ReadingAutoHideToolbarPreference.default,
+    val readingTtsMiniPlayer: ReadingTtsMiniPlayerPreference = ReadingTtsMiniPlayerPreference.default,
+    val readingTtsMiniPlayerDockSide: String = "Right",
+    val readingTtsMiniPlayerVerticalRatio: Float = 1f,
     val readingTextFontSize: Int = ReadingTextFontSizePreference.default,
     val readingTextLineHeight: Float = ReadingTextLineHeightPreference.default,
     val readingLetterSpacing: Float = ReadingTextLetterSpacingPreference.default,
@@ -79,8 +82,26 @@ data class Settings(
     val openLink: OpenLinkPreference = OpenLinkPreference.default,
     val openLinkSpecificBrowser: OpenLinkSpecificBrowserPreference = OpenLinkSpecificBrowserPreference.default,
     val sharedContent: SharedContentPreference = SharedContentPreference.default,
+    val commuteBriefGroupIds: String = "",
+    val commuteBriefFeedIds: String = "",
+    val commuteBriefDuration: CommuteBriefDurationPreference = CommuteBriefDurationPreference.default,
+    val commuteBriefMarkReadOnComplete: CommuteBriefMarkReadOnCompletePreference = CommuteBriefMarkReadOnCompletePreference.default,
 
     // Languages
     val languages: LanguagesPreference = LanguagesPreference.default,
-)
 
+    // AI
+    val aiConfigPresets: List<AiConfigPreset> = emptyList(),
+    val aiCurrentPresetId: String = "",
+    val aiBaseUrl: AiBaseUrlPreference = AiBaseUrlPreference.default,
+    val aiApiKey: AiApiKeyPreference = AiApiKeyPreference.default,
+    val aiModel: AiModelPreference = AiModelPreference.default,
+    val aiSummarizationPrompt: AiSummarizationPromptPreference = AiSummarizationPromptPreference.default,
+    val aiCommuteBriefRecommendationPrompt: AiCommuteBriefRecommendationPromptPreference = AiCommuteBriefRecommendationPromptPreference.default,
+    val aiTranslationPrompt: AiTranslationPromptPreference = AiTranslationPromptPreference.default,
+    val aiChatPrompt: AiChatPromptPreference = AiChatPromptPreference.default,
+    val aiBackgroundSummary: AiBackgroundSummaryPreference = AiBackgroundSummaryPreference.default,
+    val aiBackgroundSummaryLimit: AiBackgroundSummaryLimitPreference = AiBackgroundSummaryLimitPreference.default,
+    val aiBackgroundSummaryBackfillOnSync: AiBackgroundSummaryBackfillOnSyncPreference = AiBackgroundSummaryBackfillOnSyncPreference.default,
+    val customAiProviders: CustomAiProvidersPreference = CustomAiProvidersPreference.default
+)

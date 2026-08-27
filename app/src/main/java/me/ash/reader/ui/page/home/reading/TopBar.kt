@@ -21,12 +21,19 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.MenuOpen
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Psychology
+import androidx.compose.material.icons.outlined.QuestionAnswer
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material.icons.outlined.VerticalAlignBottom
+import androidx.compose.material.icons.outlined.VerticalAlignTop
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Menu
 import androidx.compose.material.icons.rounded.MenuOpen
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -62,6 +69,16 @@ fun TopBar(
     onClick: (() -> Unit)? = null,
     onNavButtonClick: (NavigationAction) -> Unit = {},
     onNavigateToStylePage: () -> Unit,
+    onAiSummaryClick: () -> Unit = {},
+    isAiSummaryLoading: Boolean = false,
+    isAiSummaryReady: Boolean = false,
+    onAiSummaryReadyClick: () -> Unit = {},
+    isAiSummaryReturnAvailable: Boolean = false,
+    onAiSummaryReturnClick: () -> Unit = {},
+    onAiChatClick: () -> Unit = {},
+    isTranslationEnabled: Boolean = false,
+    onTranslateClick: () -> Unit = {},
+    isTranslationLoading: Boolean = false,
 ) {
     val context = LocalContext.current
     val sharedContent = LocalSharedContent.current
@@ -122,6 +139,72 @@ fun TopBar(
                         }
                     },
                     actions = {
+                        if (isAiSummaryReturnAvailable) {
+                            FeedbackIconButton(
+                                modifier = Modifier.size(20.dp),
+                                imageVector = Icons.Outlined.VerticalAlignBottom,
+                                contentDescription =
+                                    stringResource(R.string.return_to_reading_position),
+                                tint = MaterialTheme.colorScheme.primary,
+                            ) {
+                                onAiSummaryReturnClick()
+                            }
+                        } else if (isAiSummaryReady) {
+                            FeedbackIconButton(
+                                modifier = Modifier.size(20.dp),
+                                imageVector = Icons.Outlined.VerticalAlignTop,
+                                contentDescription = stringResource(R.string.go_to_summary),
+                                tint = MaterialTheme.colorScheme.primary,
+                            ) {
+                                onAiSummaryReadyClick()
+                            }
+                        }
+                        if (isAiSummaryLoading) {
+                            IconButton(enabled = false, onClick = {}) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        } else {
+                            FeedbackIconButton(
+                                modifier = Modifier.size(22.dp),
+                                imageVector = Icons.Outlined.Psychology,
+                                contentDescription = stringResource(R.string.ai_summary),
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            ) {
+                                onAiSummaryClick()
+                            }
+                        }
+                        FeedbackIconButton(
+                            modifier = Modifier.size(22.dp),
+                            imageVector = Icons.Outlined.QuestionAnswer,
+                            contentDescription = stringResource(R.string.ai_chat),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        ) {
+                            onAiChatClick()
+                        }
+                        if (isTranslationEnabled) {
+                            if (isTranslationLoading) {
+                                IconButton(enabled = false, onClick = {}) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(18.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                            } else {
+                                FeedbackIconButton(
+                                    modifier = Modifier.size(22.dp),
+                                    imageVector = Icons.Outlined.Translate,
+                                    contentDescription = stringResource(R.string.translate),
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                ) {
+                                    onTranslateClick()
+                                }
+                            }
+                        }
                         FeedbackIconButton(
                             modifier = Modifier.size(22.dp),
                             imageVector = Icons.Outlined.Palette,

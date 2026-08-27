@@ -23,8 +23,10 @@ import me.ash.reader.domain.service.OpmlService
 import me.ash.reader.domain.service.RssService
 import me.ash.reader.infrastructure.android.AndroidStringsHelper
 import me.ash.reader.infrastructure.di.ApplicationScope
+import me.ash.reader.infrastructure.preference.SettingsProvider
 import me.ash.reader.infrastructure.rss.RssHelper
 import me.ash.reader.ui.ext.formatUrl
+import me.ash.reader.ui.page.home.reading.normalizeFeedTranslationSettings
 
 @HiltViewModel
 class SubscribeViewModel
@@ -34,6 +36,7 @@ constructor(
     val rssService: RssService,
     private val rssHelper: RssHelper,
     private val androidStringsHelper: AndroidStringsHelper,
+    private val settingsProvider: SettingsProvider,
     @ApplicationScope private val applicationScope: CoroutineScope,
     accountService: AccountService,
 ) : ViewModel() {
@@ -129,6 +132,55 @@ constructor(
         }
     }
 
+    fun toggleTranslationEnabledPreset() {
+        _subscribeState.update { state ->
+            when (state) {
+                is SubscribeState.Configure -> {
+                    val normalized =
+                        normalizeFeedTranslationSettings(
+                            isTranslationEnabled = !state.translationEnabled,
+                            isAutoTranslate = state.autoTranslate,
+                        )
+                    state.copy(
+                        translationEnabled = normalized.isTranslationEnabled,
+                        autoTranslate = normalized.isAutoTranslate,
+                    )
+                }
+                else -> state
+            }
+        }
+    }
+
+    fun toggleAutoTranslatePreset() {
+        _subscribeState.update { state ->
+            when (state) {
+                is SubscribeState.Configure -> {
+                    val targetAutoTranslate = !state.autoTranslate
+                    val normalized =
+                        normalizeFeedTranslationSettings(
+                            isTranslationEnabled = state.translationEnabled,
+                            isAutoTranslate = targetAutoTranslate,
+                            preferAutoTranslate = targetAutoTranslate,
+                        )
+                    state.copy(
+                        translationEnabled = normalized.isTranslationEnabled,
+                        autoTranslate = normalized.isAutoTranslate,
+                    )
+                }
+                else -> state
+            }
+        }
+    }
+
+    fun toggleAutoSummaryPreset() {
+        _subscribeState.update { state ->
+            when (state) {
+                is SubscribeState.Configure -> state.copy(autoSummary = !state.autoSummary)
+                else -> state
+            }
+        }
+    }
+
     fun searchFeed() {
         val currentState = _subscribeState.value
         if (currentState !is SubscribeState.Idle) return
@@ -150,23 +202,14 @@ constructor(
                 viewModelScope.launch {
                     runCatching { rssHelper.searchFeed(feedLink) }
                         .onSuccess {
-                            if (rssService.get().isFeedExist(it.feedLink)) {
-                                _subscribeState.value =
-                                    currentState.copy(
-                                        errorMessage =
-                                            androidStringsHelper.getString(
-                                                R.string.already_subscribed
-                                            )
-                                    )
-                                return@onSuccess
-                            }
                             val groups = groupsFlow.value
                             _subscribeState.value =
                                 SubscribeState.Configure(
-                                    searchedFeed = it.feed,
-                                    feedLink = it.feedLink,
+                                    searchedFeed = it,
+                                    feedLink = feedLink,
                                     groups = groups,
                                     selectedGroupId = firstGroupId,
+                                    autoSummary = false,
                                 )
                         }
                         .onFailure {
@@ -202,6 +245,9 @@ constructor(
                     isNotification = state.notification,
                     isFullContent = state.fullContent,
                     isBrowser = state.browser,
+                    isTranslationEnabled = state.translationEnabled,
+                    isAutoTranslate = state.autoTranslate,
+                    isAutoSummary = state.autoSummary,
                 )
             hideDrawer()
         }
@@ -303,6 +349,9 @@ sealed interface SubscribeState {
         val notification: Boolean = false,
         val fullContent: Boolean = false,
         val browser: Boolean = false,
+        val translationEnabled: Boolean = false,
+        val autoTranslate: Boolean = false,
+        val autoSummary: Boolean = false,
         val selectedGroupId: String,
     ) : SubscribeState, Visible
 }

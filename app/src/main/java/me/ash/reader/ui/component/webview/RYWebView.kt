@@ -4,15 +4,19 @@ import android.util.Log
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import android.webkit.WebView
 import me.ash.reader.infrastructure.preference.LocalOpenLink
 import me.ash.reader.infrastructure.preference.LocalOpenLinkSpecificBrowser
 import me.ash.reader.infrastructure.preference.LocalReadingBoldCharacters
@@ -28,6 +32,7 @@ import me.ash.reader.infrastructure.preference.LocalReadingTextFontSize
 import me.ash.reader.infrastructure.preference.LocalReadingTextHorizontalPadding
 import me.ash.reader.infrastructure.preference.LocalReadingTextLetterSpacing
 import me.ash.reader.infrastructure.preference.LocalReadingTextLineHeight
+import me.ash.reader.infrastructure.preference.LocalDarkTheme
 import me.ash.reader.infrastructure.preference.ReadingFontsPreference
 import me.ash.reader.ui.ext.ExternalFonts
 import me.ash.reader.ui.ext.openURL
@@ -40,6 +45,8 @@ fun RYWebView(
     content: String,
     refererDomain: String? = null,
     onImageClick: ((imgUrl: String, altText: String) -> Unit)? = null,
+    onWebViewReady: (WebView) -> Unit = {},
+    onScrollDelta: ((Float) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val maxWidth = LocalConfiguration.current.screenWidthDp.dp.value
@@ -68,6 +75,8 @@ fun RYWebView(
     val codeBgColor: Int =
         MaterialTheme.colorScheme.surfaceColorAtElevation((tonalElevation.value + 6).dp).toArgb()
     val boldCharacters = LocalReadingBoldCharacters.current
+    val useDarkTheme = LocalDarkTheme.current.isDarkTheme()
+    var contentHeightDp by remember { mutableIntStateOf(1) }
 
     val webView by
         remember(backgroundColor) {
@@ -82,8 +91,12 @@ fun RYWebView(
                             onOpenLink = { url ->
                                 context.openURL(url, openLink, openLinkSpecificBrowser)
                             },
-                        ),
+                    ),
                     onImageClick = onImageClick,
+                    onContentHeightChanged = { height ->
+                        contentHeightDp = height.coerceAtLeast(1)
+                    },
+                    onScrollDelta = onScrollDelta,
                 )
             )
         }
@@ -96,9 +109,13 @@ fun RYWebView(
         } else null
 
     AndroidView(
-        modifier = modifier,
-        factory = { webView },
+        modifier = modifier.height(contentHeightDp.dp),
+        factory = {
+            onWebViewReady(webView)
+            webView
+        },
         update = {
+            onWebViewReady(it)
             it.apply {
                 Log.i("RLog", "maxWidth: ${maxWidth}")
                 Log.i("RLog", "readingFont: ${context.filesDir.absolutePath}")
@@ -130,7 +147,10 @@ fun RYWebView(
                         ),
                         url,
                         content,
-                        WebViewScript.get(boldCharacters.value),
+                        WebViewScript.get(
+                            boldCharacters = boldCharacters.value,
+                            normalizeDarkTextColors = useDarkTheme,
+                        ),
                     ),
                     "text/HTML",
                     "UTF-8",

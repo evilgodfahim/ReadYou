@@ -52,12 +52,12 @@ private fun SponsorDialogContent(modifier: Modifier = Modifier) {
                 .padding(bottom = 16.dp)
         ) {
             Text(
-                text = stringResource(R.string.become_a_sponsor),
+                text = stringResource(R.string.tips_support_upstream_dialog_title),
                 style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium),
             )
             Spacer(Modifier.height(12.dp))
             Text(
-                text = stringResource(R.string.sponsor_desc),
+                text = stringResource(R.string.tips_support_upstream_dialog_desc),
                 style = MaterialTheme.typography.bodyMedium,
             )
         }
@@ -65,14 +65,14 @@ private fun SponsorDialogContent(modifier: Modifier = Modifier) {
         SponsorItem(
             model = githubAvatar("Ashinch"),
             name = "Ash",
-            description = "Lead Developer",
+            description = stringResource(R.string.tips_support_upstream_author),
         ) {
             context.openURL("https://ash7.io/sponsor/", openLink = OpenLinkPreference.default)
         }
         SponsorItem(
             model = githubAvatar("JunkFood02"),
             name = "junkfood",
-            description = "Maintainer",
+            description = stringResource(R.string.tips_support_upstream_maintainer),
         ) {
             context.openURL(
                 "https://github.com/sponsors/JunkFood02",

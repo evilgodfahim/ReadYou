@@ -11,9 +11,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.ImportExport
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Palette
+import androidx.compose.material.icons.outlined.Psychology
 import androidx.compose.material.icons.outlined.TipsAndUpdates
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.rounded.Close
@@ -50,6 +52,8 @@ fun SettingsPage(
     navigateToAccounts: () -> Unit,
     navigateToColorAndStyle: () -> Unit,
     navigateToInteraction: () -> Unit,
+    navigateToAiSettings: () -> Unit,
+    navigateToBackupRestore: () -> Unit,
     navigateToLanguages: () -> Unit,
     navigateToTroubleshooting: () -> Unit,
     navigateToTipsAndSupport: () -> Unit,
@@ -125,6 +129,22 @@ fun SettingsPage(
                         desc = stringResource(R.string.interaction_desc),
                         icon = Icons.Outlined.TouchApp,
                         onClick = navigateToInteraction
+                    )
+                }
+                item {
+                    SelectableSettingGroupItem(
+                        title = stringResource(R.string.ai_settings),
+                        desc = stringResource(R.string.ai_settings_desc),
+                        icon = Icons.Outlined.Psychology,
+                        onClick = navigateToAiSettings
+                    )
+                }
+                item {
+                    SelectableSettingGroupItem(
+                        title = stringResource(R.string.backup_restore),
+                        desc = stringResource(R.string.backup_restore_desc),
+                        icon = Icons.Outlined.ImportExport,
+                        onClick = navigateToBackupRestore,
                     )
                 }
                 item {

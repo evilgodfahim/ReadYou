@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import me.ash.reader.infrastructure.preference.Settings
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -166,6 +167,9 @@ sealed interface PreferencesKey {
         const val readingRenderer = "readingRender"
         const val readingBoldCharacters = "readingBoldCharacters"
         const val readingPageTonalElevation = "readingPageTonalElevation"
+        const val readingTtsMiniPlayer = "readingTtsMiniPlayer"
+        const val readingTtsMiniPlayerDockSide = "readingTtsMiniPlayerDockSide"
+        const val readingTtsMiniPlayerVerticalRatio = "readingTtsMiniPlayerVerticalRatio"
         const val readingTextFontSize = "readingTextFontSize"
         const val readingTextLineHeight = "readingTextLineHeight"
         const val readingTextLetterSpacing = "readingTextLetterSpacing"
@@ -197,9 +201,29 @@ sealed interface PreferencesKey {
         const val openLink = "openLink"
         const val openLinkAppSpecificBrowser = "openLinkAppSpecificBrowser"
         const val sharedContent = "sharedContent"
+        const val ttsQueueSnapshot = "ttsQueueSnapshot"
+        const val commuteBriefGroupIds = "commuteBriefGroupIds"
+        const val commuteBriefFeedIds = "commuteBriefFeedIds"
+        const val commuteBriefDurationMinutes = "commuteBriefDurationMinutes"
+        const val commuteBriefMarkReadOnComplete = "commuteBriefMarkReadOnComplete"
 
         // Languages
         const val languages = "languages"
+
+        // AI
+        const val aiBaseUrl = "aiBaseUrl"
+        const val aiApiKey = "aiApiKey"
+        const val aiModel = "aiModel"
+        const val aiConfigPresets = "aiConfigPresets"
+        const val aiCurrentPresetId = "aiCurrentPresetId"
+        const val aiSummarizationPrompt = "aiSummarizationPrompt"
+        const val aiCommuteBriefRecommendationPrompt = "aiCommuteBriefRecommendationPrompt"
+        const val aiTranslationPrompt = "aiTranslationPrompt"
+        const val aiChatPrompt = "aiChatPrompt"
+        const val customAiProviders = "custom_ai_providers"
+        const val aiBackgroundSummary = "aiBackgroundSummary"
+        const val aiBackgroundSummaryLimit = "aiBackgroundSummaryLimit"
+        const val aiBackgroundSummaryBackfillOnSync = "aiBackgroundSummaryBackfillOnSync"
 
         private val keyList =
             listOf(
@@ -243,6 +267,9 @@ sealed interface PreferencesKey {
                 IntKey(readingRenderer),
                 BooleanKey(readingBoldCharacters),
                 IntKey(readingPageTonalElevation),
+                BooleanKey(readingTtsMiniPlayer),
+                StringKey(readingTtsMiniPlayerDockSide),
+                FloatKey(readingTtsMiniPlayerVerticalRatio),
                 IntKey(readingTextFontSize),
                 FloatKey(readingTextLineHeight),
                 FloatKey(readingTextLetterSpacing),
@@ -273,8 +300,27 @@ sealed interface PreferencesKey {
                 IntKey(openLink),
                 StringKey(openLinkAppSpecificBrowser),
                 IntKey(sharedContent),
+                StringKey(ttsQueueSnapshot),
+                StringKey(commuteBriefGroupIds),
+                StringKey(commuteBriefFeedIds),
+                IntKey(commuteBriefDurationMinutes),
+                BooleanKey(commuteBriefMarkReadOnComplete),
                 // Languages
                 IntKey(languages),
+                // AI
+                StringKey(aiBaseUrl),
+                StringKey(aiApiKey),
+                StringKey(aiModel),
+                StringKey(aiConfigPresets),
+                StringKey(aiCurrentPresetId),
+                StringKey(aiSummarizationPrompt),
+                StringKey(aiCommuteBriefRecommendationPrompt),
+                StringKey(aiTranslationPrompt),
+                StringKey(aiChatPrompt),
+                StringKey(customAiProviders),
+                BooleanKey(aiBackgroundSummary),
+                IntKey(aiBackgroundSummaryLimit),
+                BooleanKey(aiBackgroundSummaryBackfillOnSync),
             )
 
         val keys = keyList.associateBy { it.name }
@@ -328,6 +374,9 @@ data class DataStoreKey<T>(val key: Preferences.Key<T>, val type: Class<T>) {
         const val readingRenderer = "readingRender"
         const val readingBoldCharacters = "readingBoldCharacters"
         const val readingPageTonalElevation = "readingPageTonalElevation"
+        const val readingTtsMiniPlayer = "readingTtsMiniPlayer"
+        const val readingTtsMiniPlayerDockSide = "readingTtsMiniPlayerDockSide"
+        const val readingTtsMiniPlayerVerticalRatio = "readingTtsMiniPlayerVerticalRatio"
         const val readingTextFontSize = "readingTextFontSize"
         const val readingTextLineHeight = "readingTextLineHeight"
         const val readingTextLetterSpacing = "readingTextLetterSpacing"
@@ -359,9 +408,29 @@ data class DataStoreKey<T>(val key: Preferences.Key<T>, val type: Class<T>) {
         const val openLink = "openLink"
         const val openLinkAppSpecificBrowser = "openLinkAppSpecificBrowser"
         const val sharedContent = "sharedContent"
+        const val ttsQueueSnapshot = "ttsQueueSnapshot"
+        const val commuteBriefGroupIds = "commuteBriefGroupIds"
+        const val commuteBriefFeedIds = "commuteBriefFeedIds"
+        const val commuteBriefDurationMinutes = "commuteBriefDurationMinutes"
+        const val commuteBriefMarkReadOnComplete = "commuteBriefMarkReadOnComplete"
 
         // Languages
         const val languages = "languages"
+
+        // AI
+        const val aiBaseUrl = "aiBaseUrl"
+        const val aiApiKey = "aiApiKey"
+        const val aiModel = "aiModel"
+        const val aiConfigPresets = "aiConfigPresets"
+        const val aiCurrentPresetId = "aiCurrentPresetId"
+        const val aiSummarizationPrompt = "aiSummarizationPrompt"
+        const val aiCommuteBriefRecommendationPrompt = "aiCommuteBriefRecommendationPrompt"
+        const val aiTranslationPrompt = "aiTranslationPrompt"
+        const val aiChatPrompt = "aiChatPrompt"
+        const val customAiProviders = "custom_ai_providers"
+        const val aiBackgroundSummary = "aiBackgroundSummary"
+        const val aiBackgroundSummaryLimit = "aiBackgroundSummaryLimit"
+        const val aiBackgroundSummaryBackfillOnSync = "aiBackgroundSummaryBackfillOnSync"
 
         val keys: MutableMap<String, DataStoreKey<*>> =
             mutableMapOf(
@@ -450,6 +519,18 @@ data class DataStoreKey<T>(val key: Preferences.Key<T>, val type: Class<T>) {
                     DataStoreKey(booleanPreferencesKey(readingBoldCharacters), Boolean::class.java),
                 readingPageTonalElevation to
                     DataStoreKey(intPreferencesKey(readingPageTonalElevation), Int::class.java),
+                readingTtsMiniPlayer to
+                    DataStoreKey(booleanPreferencesKey(readingTtsMiniPlayer), Boolean::class.java),
+                readingTtsMiniPlayerDockSide to
+                    DataStoreKey(
+                        stringPreferencesKey(readingTtsMiniPlayerDockSide),
+                        String::class.java,
+                    ),
+                readingTtsMiniPlayerVerticalRatio to
+                    DataStoreKey(
+                        floatPreferencesKey(readingTtsMiniPlayerVerticalRatio),
+                        Float::class.java,
+                    ),
                 readingTextFontSize to
                     DataStoreKey(intPreferencesKey(readingTextFontSize), Int::class.java),
                 readingTextLineHeight to
@@ -511,8 +592,42 @@ data class DataStoreKey<T>(val key: Preferences.Key<T>, val type: Class<T>) {
                         String::class.java,
                     ),
                 sharedContent to DataStoreKey(intPreferencesKey(sharedContent), Int::class.java),
+                ttsQueueSnapshot to
+                    DataStoreKey(stringPreferencesKey(ttsQueueSnapshot), String::class.java),
+                commuteBriefGroupIds to
+                    DataStoreKey(stringPreferencesKey(commuteBriefGroupIds), String::class.java),
+                commuteBriefFeedIds to
+                    DataStoreKey(stringPreferencesKey(commuteBriefFeedIds), String::class.java),
+                commuteBriefDurationMinutes to
+                    DataStoreKey(intPreferencesKey(commuteBriefDurationMinutes), Int::class.java),
+                commuteBriefMarkReadOnComplete to
+                    DataStoreKey(booleanPreferencesKey(commuteBriefMarkReadOnComplete), Boolean::class.java),
                 // Languages
                 languages to DataStoreKey(intPreferencesKey(languages), Int::class.java),
+                // AI
+                aiBaseUrl to DataStoreKey(stringPreferencesKey(aiBaseUrl), String::class.java),
+                aiApiKey to DataStoreKey(stringPreferencesKey(aiApiKey), String::class.java),
+                aiModel to DataStoreKey(stringPreferencesKey(aiModel), String::class.java),
+                aiConfigPresets to DataStoreKey(stringPreferencesKey(aiConfigPresets), String::class.java),
+                aiCurrentPresetId to DataStoreKey(stringPreferencesKey(aiCurrentPresetId), String::class.java),
+                aiSummarizationPrompt to DataStoreKey(stringPreferencesKey(aiSummarizationPrompt), String::class.java),
+                aiCommuteBriefRecommendationPrompt to
+                    DataStoreKey(stringPreferencesKey(aiCommuteBriefRecommendationPrompt), String::class.java),
+                aiTranslationPrompt to DataStoreKey(stringPreferencesKey(aiTranslationPrompt), String::class.java),
+                aiChatPrompt to DataStoreKey(stringPreferencesKey(aiChatPrompt), String::class.java),
+                customAiProviders to DataStoreKey(stringPreferencesKey(customAiProviders), String::class.java),
+                aiBackgroundSummary to
+                    DataStoreKey(
+                        booleanPreferencesKey(aiBackgroundSummary),
+                        Boolean::class.java,
+                    ),
+                aiBackgroundSummaryLimit to
+                    DataStoreKey(intPreferencesKey(aiBackgroundSummaryLimit), Int::class.java),
+                aiBackgroundSummaryBackfillOnSync to
+                    DataStoreKey(
+                        booleanPreferencesKey(aiBackgroundSummaryBackfillOnSync),
+                        Boolean::class.java,
+                    ),
             )
     }
 }
@@ -526,19 +641,48 @@ val ignorePreferencesOnExportAndImport =
 
 suspend fun Context.fromDataStoreToJSONString(): String {
     val preferences = dataStore.data.first()
-    val map: Map<String, Any?> =
+    val currentValues =
         preferences
             .asMap()
             .mapKeys { it.key.name }
             .filterKeys { it !in ignorePreferencesOnExportAndImport }
+    val defaultValues = buildDefaultBackupPreferenceValues()
+    val map: Map<String, Any> =
+        PreferencesKey.keys.keys
+            .filterNot { it in ignorePreferencesOnExportAndImport }
+            .associateWith { key ->
+                currentValues[key] ?: defaultValues.getValue(key)
+            }
     return Gson().toJson(map)
 }
 
-suspend fun String.fromJSONStringToDataStore(context: Context) {
+suspend fun String.fromJSONStringToDataStore(
+    context: Context,
+    clearExisting: Boolean = false,
+) {
     val gson = Gson()
     val type = object : TypeToken<Map<String, *>>() {}.type
     val deserializedMap: Map<String, Any> = gson.fromJson(this, type)
     context.dataStore.edit { preferences ->
+        val preservedIgnoredEntries =
+            preferences
+                .asMap()
+                .filterKeys { key -> key.name in ignorePreferencesOnExportAndImport }
+                .toMap()
+
+        if (clearExisting) {
+            preferences.clear()
+            preservedIgnoredEntries.forEach { (key, value) ->
+                @Suppress("UNCHECKED_CAST")
+                when (value) {
+                    is Boolean -> preferences[key as Preferences.Key<Boolean>] = value
+                    is Float -> preferences[key as Preferences.Key<Float>] = value
+                    is Int -> preferences[key as Preferences.Key<Int>] = value
+                    is Long -> preferences[key as Preferences.Key<Long>] = value
+                    is String -> preferences[key as Preferences.Key<String>] = value
+                }
+            }
+        }
         deserializedMap
             .filterKeys { it !in ignorePreferencesOnExportAndImport }
             .forEach { (keyString, value) ->
@@ -563,4 +707,97 @@ suspend fun String.fromJSONStringToDataStore(context: Context) {
                 }
             }
     }
+}
+
+private fun buildDefaultBackupPreferenceValues(): Map<String, Any> {
+    val settings = Settings()
+    return mapOf(
+        PreferencesKey.newVersionPublishDate to settings.newVersionPublishDate,
+        PreferencesKey.newVersionLog to settings.newVersionLog,
+        PreferencesKey.newVersionSizeString to settings.newVersionSize,
+        PreferencesKey.newVersionDownloadUrl to settings.newVersionDownloadUrl,
+        PreferencesKey.newVersionNumber to settings.newVersionNumber.toString(),
+        PreferencesKey.skipVersionNumber to settings.skipVersionNumber.toString(),
+        PreferencesKey.themeIndex to settings.themeIndex,
+        PreferencesKey.customPrimaryColor to settings.customPrimaryColor,
+        PreferencesKey.darkTheme to settings.darkTheme.value,
+        PreferencesKey.amoledDarkTheme to settings.amoledDarkTheme.value,
+        PreferencesKey.basicFonts to settings.basicFonts.value,
+        PreferencesKey.feedsFilterBarStyle to settings.feedsFilterBarStyle.value,
+        PreferencesKey.feedsFilterBarPadding to settings.feedsFilterBarPadding,
+        PreferencesKey.feedsFilterBarTonalElevation to settings.feedsFilterBarTonalElevation.value,
+        PreferencesKey.feedsTopBarTonalElevation to settings.feedsTopBarTonalElevation.value,
+        PreferencesKey.feedsGroupListExpand to settings.feedsGroupListExpand.value,
+        PreferencesKey.feedsGroupListTonalElevation to settings.feedsGroupListTonalElevation.value,
+        PreferencesKey.flowFilterBarStyle to settings.flowFilterBarStyle.value,
+        PreferencesKey.flowFilterBarPadding to settings.flowFilterBarPadding,
+        PreferencesKey.flowFilterBarTonalElevation to settings.flowFilterBarTonalElevation.value,
+        PreferencesKey.flowTopBarTonalElevation to settings.flowTopBarTonalElevation.value,
+        PreferencesKey.flowArticleListFeedIcon to settings.flowArticleListFeedIcon.value,
+        PreferencesKey.flowArticleListFeedName to settings.flowArticleListFeedName.value,
+        PreferencesKey.flowArticleListImage to settings.flowArticleListImage.value,
+        PreferencesKey.flowArticleListDesc to settings.flowArticleListDesc.value,
+        PreferencesKey.flowArticleListTime to settings.flowArticleListTime.value,
+        PreferencesKey.flowArticleListDateStickyHeader to
+            settings.flowArticleListDateStickyHeader.value,
+        PreferencesKey.flowArticleListTonalElevation to settings.flowArticleListTonalElevation.value,
+        PreferencesKey.flowArticleListReadIndicator to settings.flowArticleListReadIndicator.value,
+        PreferencesKey.flowSortUnreadArticles to settings.flowSortUnreadArticles.value,
+        PreferencesKey.readingRenderer to settings.readingRenderer.value,
+        PreferencesKey.readingBoldCharacters to settings.readingBoldCharacters.value,
+        PreferencesKey.readingPageTonalElevation to settings.readingPageTonalElevation.value,
+        PreferencesKey.readingTtsMiniPlayer to settings.readingTtsMiniPlayer.value,
+        PreferencesKey.readingTtsMiniPlayerDockSide to settings.readingTtsMiniPlayerDockSide,
+        PreferencesKey.readingTtsMiniPlayerVerticalRatio to
+            settings.readingTtsMiniPlayerVerticalRatio,
+        PreferencesKey.readingTextFontSize to settings.readingTextFontSize,
+        PreferencesKey.readingTextLineHeight to settings.readingTextLineHeight,
+        PreferencesKey.readingTextLetterSpacing to settings.readingLetterSpacing,
+        PreferencesKey.readingTextHorizontalPadding to settings.readingTextHorizontalPadding,
+        PreferencesKey.readingTextBold to settings.readingTextBold.value,
+        PreferencesKey.readingTextAlign to settings.readingTextAlign.value,
+        PreferencesKey.readingTitleAlign to settings.readingTitleAlign.value,
+        PreferencesKey.readingSubheadAlign to settings.readingSubheadAlign.value,
+        PreferencesKey.readingTheme to settings.readingTheme.value,
+        PreferencesKey.readingFonts to settings.readingFonts.value,
+        PreferencesKey.readingAutoHideToolbar to settings.readingAutoHideToolbar.value,
+        PreferencesKey.readingTitleBold to settings.readingTitleBold.value,
+        PreferencesKey.readingSubheadBold to settings.readingSubheadBold.value,
+        PreferencesKey.readingTitleUpperCase to settings.readingTitleUpperCase.value,
+        PreferencesKey.readingSubheadUpperCase to settings.readingSubheadUpperCase.value,
+        PreferencesKey.readingImageMaximize to settings.readingImageMaximize.value,
+        PreferencesKey.readingImageHorizontalPadding to settings.readingImageHorizontalPadding,
+        PreferencesKey.readingImageRoundedCorners to settings.readingImageRoundedCorners,
+        PreferencesKey.initialPage to settings.initialPage.value,
+        PreferencesKey.initialFilter to settings.initialFilter.value,
+        PreferencesKey.swipeStartAction to settings.swipeStartAction.action,
+        PreferencesKey.swipeEndAction to settings.swipeEndAction.action,
+        PreferencesKey.markAsReadOnScroll to settings.markAsReadOnScroll.value,
+        PreferencesKey.hideEmptyGroups to settings.hideEmptyGroups.value,
+        PreferencesKey.pullToLoadNextFeed to settings.pullToSwitchFeed.value,
+        PreferencesKey.pullToSwitchArticle to settings.pullToSwitchArticle.value,
+        PreferencesKey.openLink to settings.openLink.value,
+        PreferencesKey.openLinkAppSpecificBrowser to
+            settings.openLinkSpecificBrowser.packageName.orEmpty(),
+        PreferencesKey.sharedContent to settings.sharedContent.value,
+        PreferencesKey.ttsQueueSnapshot to "",
+        PreferencesKey.commuteBriefGroupIds to settings.commuteBriefGroupIds,
+        PreferencesKey.commuteBriefFeedIds to settings.commuteBriefFeedIds,
+        PreferencesKey.commuteBriefDurationMinutes to settings.commuteBriefDuration.minutes,
+        PreferencesKey.commuteBriefMarkReadOnComplete to settings.commuteBriefMarkReadOnComplete.value,
+        PreferencesKey.languages to settings.languages.value,
+        PreferencesKey.aiBaseUrl to settings.aiBaseUrl.value,
+        PreferencesKey.aiApiKey to settings.aiApiKey.value,
+        PreferencesKey.aiModel to settings.aiModel.value,
+        PreferencesKey.aiConfigPresets to "",
+        PreferencesKey.aiCurrentPresetId to "",
+        PreferencesKey.aiSummarizationPrompt to settings.aiSummarizationPrompt.value,
+        PreferencesKey.aiCommuteBriefRecommendationPrompt to settings.aiCommuteBriefRecommendationPrompt.value,
+        PreferencesKey.aiTranslationPrompt to settings.aiTranslationPrompt.value,
+        PreferencesKey.aiChatPrompt to settings.aiChatPrompt.value,
+        PreferencesKey.customAiProviders to "[]",
+        PreferencesKey.aiBackgroundSummary to settings.aiBackgroundSummary.value,
+        PreferencesKey.aiBackgroundSummaryLimit to settings.aiBackgroundSummaryLimit.value,
+        PreferencesKey.aiBackgroundSummaryBackfillOnSync to settings.aiBackgroundSummaryBackfillOnSync.value,
+    )
 }

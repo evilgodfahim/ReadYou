@@ -35,6 +35,12 @@ data class Feed(
     val isFullContent: Boolean = false,
     @ColumnInfo(defaultValue = "0")
     val isBrowser: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    val isTranslationEnabled: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    val isAutoTranslate: Boolean = false,
+    @ColumnInfo(defaultValue = "0")
+    val isAutoSummary: Boolean = false,
     @Ignore val important: Int = 0
 ) {
     constructor(
@@ -46,7 +52,10 @@ data class Feed(
         accountId: Int,
         isNotification: Boolean,
         isFullContent: Boolean,
-        isBrowser: Boolean
+        isBrowser: Boolean,
+        isTranslationEnabled: Boolean,
+        isAutoTranslate: Boolean,
+        isAutoSummary: Boolean = false,
     ) : this(
         id = id,
         name = name,
@@ -57,6 +66,9 @@ data class Feed(
         isNotification = isNotification,
         isFullContent = isFullContent,
         isBrowser = isBrowser,
+        isTranslationEnabled = isTranslationEnabled,
+        isAutoTranslate = isAutoTranslate,
+        isAutoSummary = isAutoSummary,
         important = 0
     )
 }

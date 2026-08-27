@@ -19,11 +19,13 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material.icons.outlined.FiberManualRecord
+import androidx.compose.material.icons.outlined.Headphones
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.CheckCircleOutline
 import androidx.compose.material.icons.rounded.FiberManualRecord
+import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.DropdownMenuItem
@@ -95,13 +97,30 @@ fun ArticleItem(
 ) {
     val feed = articleWithFeed.feed
     val article = articleWithFeed.article
+    val translationPreview =
+        remember(feed.isTranslationEnabled, article.translationBlocksZh, article.title, article.shortDescription) {
+            if (feed.isTranslationEnabled) {
+                resolveTranslatedListPreview(
+                    translationBlocks = article.translationBlocksZh,
+                    fallbackTitle = article.title,
+                    fallbackDescription = article.shortDescription,
+                )
+            } else {
+                ArticleListTranslationPreview(
+                    title = article.title,
+                    shortDescription = article.shortDescription,
+                )
+            }
+        }
 
     ArticleItem(
         modifier = modifier,
         feedName = feed.name,
         feedIconUrl = feed.icon,
-        title = article.title,
-        shortDescription = article.shortDescription,
+        title = translationPreview.title,
+        shortDescription = translationPreview.shortDescription,
+        isTitleTranslated = translationPreview.isTitleTranslated,
+        isShortDescriptionTranslated = translationPreview.isShortDescriptionTranslated,
         timeString = article.dateString,
         imgData = article.img,
         isStarred = article.isStarred,
@@ -119,6 +138,8 @@ fun ArticleItem(
     feedIconUrl: String? = null,
     title: String = "",
     shortDescription: String = "",
+    isTitleTranslated: Boolean = false,
+    isShortDescriptionTranslated: Boolean = false,
     timeString: String? = null,
     imgData: Any? = null,
     isStarred: Boolean = false,
@@ -231,14 +252,18 @@ fun ArticleItem(
                 Row {
                     Text(
                         text = title,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color =
+                            if (isTitleTranslated) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
                         style =
                             MaterialTheme.typography.titleMedium
                                 .applyTextDirection(title.requiresBidi())
                                 .merge(lineHeight = 22.sp),
-                        maxLines =
-                            if (articleListDesc != FlowArticleListDescPreference.NONE) 2 else 4,
-                        overflow = TextOverflow.Ellipsis,
+                        maxLines = Int.MAX_VALUE,
+                        overflow = TextOverflow.Clip,
                         modifier = Modifier.weight(1f),
                     )
                     if (!articleListFeedName.value && !articleListDate.value) {
@@ -258,7 +283,12 @@ fun ArticleItem(
                     Text(
                         modifier = Modifier.padding(top = 4.dp),
                         text = shortDescription,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color =
+                            if (isShortDescriptionTranslated) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                         style =
                             MaterialTheme.typography.bodySmall.applyTextDirection(
                                 shortDescription.requiresBidi()
@@ -320,6 +350,8 @@ fun SwipeableArticleItem(
     onMarkAboveAsRead: ((ArticleWithFeed) -> Unit)? = null,
     onMarkBelowAsRead: ((ArticleWithFeed) -> Unit)? = null,
     onShare: ((ArticleWithFeed) -> Unit)? = null,
+    onAddToPlaylist: ((ArticleWithFeed) -> Unit)? = null,
+    onPlayNow: ((ArticleWithFeed) -> Unit)? = null,
 ) {
 
     var isMenuExpanded by remember { mutableStateOf(false) }
@@ -381,6 +413,8 @@ fun SwipeableArticleItem(
                             onMarkAboveAsRead = onMarkAboveAsRead,
                             onMarkBelowAsRead = onMarkBelowAsRead,
                             onShare = onShare,
+                            onAddToPlaylist = onAddToPlaylist,
+                            onPlayNow = onPlayNow,
                         ) {
                             isMenuExpanded = false
                         }
@@ -571,6 +605,8 @@ fun ArticleItemMenuContent(
     onMarkAboveAsRead: ((ArticleWithFeed) -> Unit)? = null,
     onMarkBelowAsRead: ((ArticleWithFeed) -> Unit)? = null,
     onShare: ((ArticleWithFeed) -> Unit)? = null,
+    onAddToPlaylist: ((ArticleWithFeed) -> Unit)? = null,
+    onPlayNow: ((ArticleWithFeed) -> Unit)? = null,
     onItemClick: (() -> Unit)? = null,
 ) {
     val starImageVector =
@@ -661,6 +697,39 @@ fun ArticleItemMenuContent(
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Rounded.Share,
+                    contentDescription = null,
+                    modifier = Modifier.size(iconSize),
+                )
+            },
+        )
+    }
+    onAddToPlaylist?.let {
+        HorizontalDivider()
+        DropdownMenuItem(
+            text = { Text(text = stringResource(id = R.string.add_to_playlist)) },
+            onClick = {
+                onAddToPlaylist(articleWithFeed)
+                onItemClick?.invoke()
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Outlined.Headphones,
+                    contentDescription = null,
+                    modifier = Modifier.size(iconSize),
+                )
+            },
+        )
+    }
+    onPlayNow?.let {
+        DropdownMenuItem(
+            text = { Text(text = stringResource(id = R.string.play_now)) },
+            onClick = {
+                onPlayNow(articleWithFeed)
+                onItemClick?.invoke()
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Rounded.PlayArrow,
                     contentDescription = null,
                     modifier = Modifier.size(iconSize),
                 )

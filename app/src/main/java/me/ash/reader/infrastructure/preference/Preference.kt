@@ -3,6 +3,8 @@ package me.ash.reader.infrastructure.preference
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.CoroutineScope
+import me.ash.reader.ui.ext.DataStoreKey
+import me.ash.reader.ui.ext.PreferencesKey
 
 sealed class Preference {
 
@@ -10,6 +12,9 @@ sealed class Preference {
 }
 
 fun Preferences.toSettings(): Settings {
+    val defaultSettings = Settings()
+    val presetState = readAiConfigPresetState() ?: readLegacyAiConfigPresetState()
+    val currentPreset = presetState?.presets?.firstOrNull { it.id == presetState.currentPresetId }
     return Settings(
         // Version
         newVersionNumber = NewVersionNumberPreference.fromPreferences(this),
@@ -57,6 +62,13 @@ fun Preferences.toSettings(): Settings {
         readingTheme = ReadingThemePreference.fromPreferences(this),
         readingPageTonalElevation = ReadingPageTonalElevationPreference.fromPreferences(this),
         readingAutoHideToolbar = ReadingAutoHideToolbarPreference.fromPreferences(this),
+        readingTtsMiniPlayer = ReadingTtsMiniPlayerPreference.fromPreferences(this),
+        readingTtsMiniPlayerDockSide =
+            (PreferencesKey.keys[PreferencesKey.readingTtsMiniPlayerDockSide] as? PreferencesKey.StringKey)
+                ?.let { this[it.key] } ?: defaultSettings.readingTtsMiniPlayerDockSide,
+        readingTtsMiniPlayerVerticalRatio =
+            (PreferencesKey.keys[PreferencesKey.readingTtsMiniPlayerVerticalRatio] as? PreferencesKey.FloatKey)
+                ?.let { this[it.key] } ?: defaultSettings.readingTtsMiniPlayerVerticalRatio,
         readingTextFontSize = ReadingTextFontSizePreference.fromPreferences(this),
         readingTextLineHeight = ReadingTextLineHeightPreference.fromPreferences(this),
         readingLetterSpacing = ReadingTextLetterSpacingPreference.fromPreferences(this),
@@ -86,8 +98,29 @@ fun Preferences.toSettings(): Settings {
         openLink = OpenLinkPreference.fromPreferences(this),
         openLinkSpecificBrowser = OpenLinkSpecificBrowserPreference.fromPreferences(this),
         sharedContent = SharedContentPreference.fromPreferences(this),
+        commuteBriefGroupIds =
+            this[DataStoreKey.keys[DataStoreKey.commuteBriefGroupIds]?.key as Preferences.Key<String>].orEmpty(),
+        commuteBriefFeedIds =
+            this[DataStoreKey.keys[DataStoreKey.commuteBriefFeedIds]?.key as Preferences.Key<String>].orEmpty(),
+        commuteBriefDuration = CommuteBriefDurationPreference.fromPreferences(this),
+        commuteBriefMarkReadOnComplete = CommuteBriefMarkReadOnCompletePreference.fromPreferences(this),
 
         // Languages
         languages = LanguagesPreference.fromPreferences(this),
+
+        // AI
+        aiConfigPresets = presetState?.presets.orEmpty(),
+        aiCurrentPresetId = presetState?.currentPresetId.orEmpty(),
+        aiBaseUrl = currentPreset?.let { AiBaseUrlPreference(it.baseUrl) } ?: AiBaseUrlPreference.fromPreferences(this),
+        aiApiKey = currentPreset?.let { AiApiKeyPreference(it.apiKey) } ?: AiApiKeyPreference.fromPreferences(this),
+        aiModel = currentPreset?.let { AiModelPreference(it.model) } ?: AiModelPreference.fromPreferences(this),
+        aiSummarizationPrompt = AiSummarizationPromptPreference.fromPreferences(this),
+        aiCommuteBriefRecommendationPrompt = AiCommuteBriefRecommendationPromptPreference.fromPreferences(this),
+        aiTranslationPrompt = AiTranslationPromptPreference.fromPreferences(this),
+        aiChatPrompt = AiChatPromptPreference.fromPreferences(this),
+        aiBackgroundSummary = AiBackgroundSummaryPreference.fromPreferences(this),
+        aiBackgroundSummaryLimit = AiBackgroundSummaryLimitPreference.fromPreferences(this),
+        aiBackgroundSummaryBackfillOnSync = AiBackgroundSummaryBackfillOnSyncPreference.fromPreferences(this),
+        customAiProviders = CustomAiProvidersPreference.fromPreferences(this),
     )
 }

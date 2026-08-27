@@ -10,7 +10,6 @@ import com.rometools.rome.feed.synd.SyndFeed
 import com.rometools.rome.feed.synd.SyndImageImpl
 import com.rometools.rome.io.SyndFeedInput
 import com.rometools.rome.io.XmlReader
-import java.io.ByteArrayInputStream
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.nio.charset.Charset
 import java.util.*
@@ -22,6 +21,7 @@ import me.ash.reader.domain.model.feed.Feed
 import me.ash.reader.domain.repository.FeedDao
 import me.ash.reader.infrastructure.di.IODispatcher
 import me.ash.reader.infrastructure.html.Readability
+import me.ash.reader.infrastructure.html.VideoNoiseCleaner
 import me.ash.reader.ui.ext.currentAccountId
 import me.ash.reader.ui.ext.decodeHTML
 import me.ash.reader.ui.ext.extractDomain
@@ -46,70 +46,26 @@ constructor(
     private val okHttpClient: OkHttpClient,
 ) {
 
-    data class SearchFeedResult(
-        val feed: SyndFeed,
-        val feedLink: String,
-    )
-
     @Throws(Exception::class)
-    suspend fun searchFeed(feedLink: String): SearchFeedResult {
+    suspend fun searchFeed(feedLink: String): SyndFeed {
         return withContext(ioDispatcher) {
-            val directResponse = response(okHttpClient, feedLink)
-            if (!directResponse.commonIsSuccessful) throw IOException(directResponse.message)
-            val directBody = directResponse.body.bytes()
-            val directHttpContentType = toHttpContentType(directResponse.header("Content-Type"))
-
-            val parsedDirectFeed = runCatching { parseFeed(directBody, directHttpContentType) }.getOrNull()
-
-            val resolvedFeedLink =
-                if (parsedDirectFeed != null) feedLink
-                else discoverFeedLink(feedLink, directBody)
-                    ?: throw IOException("Unable to detect RSS feed URL")
+            val response = response(okHttpClient, feedLink)
+            val contentType = response.header("Content-Type")
+            val httpContentType =
+                contentType?.let {
+                    if (it.contains("charset=", ignoreCase = true)) it
+                    else "$it; charset=UTF-8"
+                } ?: "text/xml; charset=UTF-8"
 
 
-            val feed = parsedDirectFeed ?: run {
-                val discoveredResponse = response(okHttpClient, resolvedFeedLink)
-                if (!discoveredResponse.commonIsSuccessful) {
-                    throw IOException(discoveredResponse.message)
+            response.body.byteStream().use { inputStream ->
+                    SyndFeedInput().build(XmlReader(inputStream, httpContentType)).also {
+                    it.icon = SyndImageImpl()
+                    it.icon.link = queryRssIconLink(feedLink)
+                    it.icon.url = it.icon.link
                 }
-                parseFeed(
-                    discoveredResponse.body.bytes(),
-                    toHttpContentType(discoveredResponse.header("Content-Type")),
-                )
             }
-
-            feed.also {
-                it.icon = SyndImageImpl()
-                it.icon.link = queryRssIconLink(resolvedFeedLink)
-                it.icon.url = it.icon.link
-            }
-
-            SearchFeedResult(feed = feed, feedLink = resolvedFeedLink)
         }
-    }
-
-    private fun toHttpContentType(contentType: String?): String =
-        contentType?.let {
-            if (it.contains("charset=", ignoreCase = true)) it else "$it; charset=UTF-8"
-        } ?: "text/xml; charset=UTF-8"
-
-    private fun parseFeed(body: ByteArray, httpContentType: String): SyndFeed =
-        ByteArrayInputStream(body).use { inputStream ->
-            SyndFeedInput().build(XmlReader(inputStream, httpContentType))
-        }
-
-    private fun discoverFeedLink(pageUrl: String, body: ByteArray): String? {
-        val document = Jsoup.parse(String(body, Charsets.UTF_8), pageUrl)
-        val links = document.select("head link[rel~=(?i)alternate][href]")
-        val preferred =
-            links.firstOrNull {
-                val type = it.attr("type").lowercase(Locale.ROOT)
-                type == "application/rss+xml" ||
-                    type == "application/atom+xml" ||
-                    type == "application/rdf+xml"
-            }
-        val fallback = links.firstOrNull()
-        return (preferred ?: fallback)?.absUrl("href")?.takeIf { it.isNotBlank() }
     }
 
     @Throws(Exception::class)
@@ -206,6 +162,7 @@ constructor(
             syndEntry.contents
                 .takeIf { it.isNotEmpty() }
                 ?.let { it.joinToString("\n") { it.value } }
+        val rawDescription = VideoNoiseCleaner.cleanHtml(content ?: desc ?: "", syndEntry.link)
         //        Log.i(
         //            "RLog",
         //            "request rss:\n" +
@@ -225,8 +182,8 @@ constructor(
                     ?: preDate,
             title = syndEntry.title.decodeHTML() ?: feed.name,
             author = syndEntry.author,
-            rawDescription = content ?: desc ?: "",
-            shortDescription = Readability.parseToText(desc ?: content, syndEntry.link).take(280),
+            rawDescription = rawDescription,
+            shortDescription = Readability.parseToText(rawDescription, syndEntry.link).take(280),
             //            fullContent = content,
             img = findThumbnail(syndEntry) ?: findThumbnail(content ?: desc),
             link = syndEntry.link ?: "",

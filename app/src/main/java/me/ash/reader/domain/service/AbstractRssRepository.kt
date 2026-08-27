@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import me.ash.reader.domain.model.account.Account
 import me.ash.reader.domain.model.article.ArchivedArticle
+import me.ash.reader.domain.model.article.ArticleDateJumpItem
 import me.ash.reader.domain.model.article.Article
 import me.ash.reader.domain.model.article.ArticleWithFeed
 import me.ash.reader.domain.model.feed.Feed
@@ -58,6 +59,9 @@ abstract class AbstractRssRepository(
         isNotification: Boolean,
         isFullContent: Boolean,
         isBrowser: Boolean,
+        isTranslationEnabled: Boolean = false,
+        isAutoTranslate: Boolean = false,
+        isAutoSummary: Boolean = false,
     ) {
         val accountId = accountService.getCurrentAccountId()
         val feed =
@@ -71,6 +75,9 @@ abstract class AbstractRssRepository(
                 isBrowser = isBrowser,
                 isNotification = isNotification,
                 isFullContent = isFullContent,
+                isTranslationEnabled = isTranslationEnabled,
+                isAutoTranslate = isAutoTranslate,
+                isAutoSummary = isAutoSummary,
             )
         val articles =
             searchedFeed.entries.map { rssHelper.buildArticleFromSyndEntry(feed, accountId, it) }
@@ -149,9 +156,10 @@ abstract class AbstractRssRepository(
         articleDao.markAsStarredByArticleId(accountId, articleId, isStarred)
     }
 
-    suspend fun clearKeepArchivedArticles(): List<Article> {
-        val accountId = accountService.getCurrentAccountId()
-        val currentAccount = accountService.getCurrentAccount()
+    suspend fun clearKeepArchivedArticles(
+        accountId: Int = accountService.getCurrentAccountId(),
+    ): List<Article> {
+        val currentAccount = accountService.getAccountById(accountId) ?: return emptyList()
         val keepArchived = currentAccount.keepArchived
         if (keepArchived != KeepArchivedPreference.Always) {
             val archivedArticles =
@@ -310,6 +318,35 @@ abstract class AbstractRssRepository(
 
     open suspend fun renameGroup(group: Group) {
         groupDao.update(group)
+    }
+
+    open suspend fun queryArticleDateJumpItems(
+        groupId: String?,
+        feedId: String?,
+        filterIndex: Int,
+        searchContent: String?,
+        sortAscending: Boolean = false,
+    ): List<ArticleDateJumpItem> {
+        val accountId = accountService.getCurrentAccountId()
+        var articleOffset = 0
+        return articleDao
+            .queryArticleDateBuckets(
+                accountId = accountId,
+                groupId = groupId,
+                feedId = feedId,
+                filterIndex = filterIndex,
+                searchContent = searchContent?.trim()?.takeIf { it.isNotEmpty() },
+                sortAscending = sortAscending,
+            )
+            .map { row ->
+                ArticleDateJumpItem(
+                    date = row.date,
+                    articleCount = row.articleCount,
+                    articleOffset = articleOffset,
+                ).also {
+                    articleOffset += row.articleCount
+                }
+            }
     }
 
     open suspend fun renameFeed(feed: Feed) {
@@ -484,6 +521,7 @@ abstract class AbstractRssRepository(
         }
     }
 
-    suspend fun queryUnreadFullContentArticles() =
-        articleDao.queryUnreadFullContentArticles(accountService.getCurrentAccountId())
+    suspend fun queryUnreadFullContentArticles(
+        accountId: Int = accountService.getCurrentAccountId(),
+    ) = articleDao.queryUnreadFullContentArticles(accountId)
 }

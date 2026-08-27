@@ -1,0 +1,21 @@
+name: Build APK
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Show SHA
+        run: echo "Build SHA: ${{ github.sha }}"
+      - uses: gradle/gradle-build-action@v2
+      - run: gradle assembleDebug
+      - name: Rename APK
+        run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ReadYou-${{ github.sha }}.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ReadYou-Build-${{ github.sha }}
+          path: app/build/outputs/apk/debug/ReadYou-${{ github.sha }}.apk

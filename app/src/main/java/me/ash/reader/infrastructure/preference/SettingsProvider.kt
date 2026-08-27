@@ -53,6 +53,11 @@ class SettingsProvider @Inject constructor(
     init {
         coroutineScope.launch(ioDispatcher) {
             preferencesFlow.collect {
+                if (it.readAiConfigPresetState() == null) {
+                    it.readLegacyAiConfigPresetState()?.let { presetState ->
+                        context.writeAiConfigPresetState(presetState)
+                    }
+                }
                 _settingsFlow.value = it.toSettings()
             }
         }
@@ -109,6 +114,7 @@ class SettingsProvider @Inject constructor(
             LocalReadingTheme provides settings.readingTheme,
             LocalReadingPageTonalElevation provides settings.readingPageTonalElevation,
             LocalReadingAutoHideToolbar provides settings.readingAutoHideToolbar,
+            LocalReadingTtsMiniPlayer provides settings.readingTtsMiniPlayer,
             LocalReadingTextFontSize provides settings.readingTextFontSize,
             LocalReadingTextLineHeight provides settings.readingTextLineHeight,
             LocalReadingTextLetterSpacing provides settings.readingLetterSpacing,
@@ -137,9 +143,24 @@ class SettingsProvider @Inject constructor(
             LocalOpenLink provides settings.openLink,
             LocalOpenLinkSpecificBrowser provides settings.openLinkSpecificBrowser,
             LocalSharedContent provides settings.sharedContent,
+            LocalCommuteBriefDuration provides settings.commuteBriefDuration,
+            LocalCommuteBriefMarkReadOnComplete provides settings.commuteBriefMarkReadOnComplete,
 
             // Languages
             LocalLanguages provides settings.languages,
+
+            // AI
+            LocalAiBaseUrl provides settings.aiBaseUrl,
+            LocalCustomAiProviders provides settings.customAiProviders,
+            LocalAiApiKey provides settings.aiApiKey,
+            LocalAiModel provides settings.aiModel,
+            LocalAiSummarizationPrompt provides settings.aiSummarizationPrompt,
+            LocalAiCommuteBriefRecommendationPrompt provides settings.aiCommuteBriefRecommendationPrompt,
+            LocalAiTranslationPrompt provides settings.aiTranslationPrompt,
+            LocalAiChatPrompt provides settings.aiChatPrompt,
+            LocalAiBackgroundSummary provides settings.aiBackgroundSummary,
+            LocalAiBackgroundSummaryLimit provides settings.aiBackgroundSummaryLimit,
+            LocalAiBackgroundSummaryBackfillOnSync provides settings.aiBackgroundSummaryBackfillOnSync,
         ) {
             content()
         }

@@ -14,8 +14,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.util.Date
+import me.ash.reader.R
+import me.ash.reader.infrastructure.android.ttsqueue.estimateReadingStats
 import me.ash.reader.infrastructure.preference.LocalReadingFonts
 import me.ash.reader.infrastructure.preference.LocalReadingTitleAlign
 import me.ash.reader.infrastructure.preference.LocalReadingTitleBold
@@ -23,7 +27,6 @@ import me.ash.reader.infrastructure.preference.LocalReadingTitleUpperCase
 import me.ash.reader.ui.ext.formatAsString
 import me.ash.reader.ui.ext.requiresBidi
 import me.ash.reader.ui.theme.applyTextDirection
-import java.util.Date
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -31,8 +34,11 @@ fun Metadata(
     feedName: String,
     title: String,
     publishedDate: Date,
+    rawDescription: String,
+    shortDescription: String,
     modifier: Modifier = Modifier,
     author: String? = null,
+    translatedTitle: String? = null,
 ) {
     val context = LocalContext.current
     val titleBold = LocalReadingTitleBold.current
@@ -43,8 +49,16 @@ fun Metadata(
     val fontFamily = LocalReadingFonts.current.asFontFamily(context)
 
     val titleUpperCaseString by remember { derivedStateOf { title.uppercase() } }
+    val translatedTitleText = translatedTitle?.trim().takeIf { !it.isNullOrBlank() }
 
     val labelColor = MaterialTheme.colorScheme.outline.copy(alpha = .7f)
+    val readingStats = remember(rawDescription, shortDescription, title) {
+        estimateReadingStats(
+            rawDescription = rawDescription,
+            shortDescription = shortDescription,
+            title = title,
+        )
+    }
 
     Column(
         modifier =
@@ -74,6 +88,19 @@ fun Metadata(
             textAlign = titleAlign,
         )
         Spacer(modifier = Modifier.height(4.dp))
+        translatedTitleText?.let {
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = it,
+                color = MaterialTheme.colorScheme.primary,
+                style =
+                    MaterialTheme.typography.titleLarge
+                        .merge(fontFamily = fontFamily)
+                        .applyTextDirection(requiresBidi = it.requiresBidi()),
+                textAlign = titleAlign,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+        }
         author?.let {
             if (it.isNotEmpty()) {
                 Text(
@@ -92,5 +119,21 @@ fun Metadata(
             style = MaterialTheme.typography.labelMedium.merge(fontFamily = fontFamily),
             textAlign = titleAlign,
         )
+        readingStats?.let { stats ->
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text =
+                    stringResource(
+                        R.string.reading_stats_summary,
+                        stats.charCount,
+                        stats.readingMinutes,
+                        stats.audioMinutes,
+                    ),
+                color = labelColor,
+                style = MaterialTheme.typography.labelSmall.merge(fontFamily = fontFamily),
+                textAlign = titleAlign,
+            )
+        }
     }
 }

@@ -285,7 +285,7 @@ fun ArticleItem(article: Article, theme: Theme, modifier: GlanceModifier = Glanc
                             Theme.SansSerif -> FontFamily.SansSerif
                         },
                 ),
-            maxLines = 2,
+            maxLines = 10,
         )
     }
 }

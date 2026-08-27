@@ -68,7 +68,7 @@ sealed class ReadingFontsPreference(val value: Int) : Preference() {
 
     companion object {
 
-        val default = GoogleSans
+        val default = Serif
         val values = listOf(GoogleSans, System, Serif, SansSerif, Monospace, Cursive, External)
 
         fun fromPreferences(preferences: Preferences): ReadingFontsPreference =
