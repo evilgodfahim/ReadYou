@@ -254,15 +254,15 @@ class AiChatRepository @Inject constructor() {
     internal fun buildWebSearchTestRequest(model: String): OpenAiResponsesRequest =
         buildResponsesRequest(
             model = model,
-            prompt = "请用简体中文直接回答。",
-            articleTitle = "联网搜索测试",
+            prompt = "Respond directly and clearly in English.",
+            articleTitle = "Web Search Test",
             feedName = "ReadYouAI",
             articleLink = null,
             articleContent = "",
             includeFullContent = false,
             selectedSnippet = null,
             history = emptyList(),
-            userQuestion = "请联网搜索“今天北京天气”，并用一句话回答搜索是否成功。",
+            userQuestion = "Please perform a web search for current tech news and answer in one sentence if the search succeeded.",
         )
 
     internal fun extractResponsesReply(response: OpenAiResponsesResponse): String {

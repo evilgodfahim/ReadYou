@@ -31,7 +31,7 @@ object WebViewStyle {
     ): String = if (fontPath != null) """
         --font-family: external, 'Nikosh', serif;
     """.trimIndent() else """
-        --font-family: 'PlayfairDisplay', 'Nikosh', serif;
+        --font-family: 'Nikosh', 'PlayfairDisplay', serif;
     """.trimIndent()
 
     fun get(

@@ -72,14 +72,14 @@ class AiTranslationRepository @Inject constructor() {
                     你是一个翻译结果生成器。
 
                     输出要求：
-                    - 只返回 JSON，不要返回代码块、说明、前言或额外文字
-                    - 输入是一个 JSON 数组
-                    - 保留每一项的 id
-                    - 保持原有顺序
-                    - 不要遗漏任何一项
-                    - 不要总结，不要改写为提纲
-                    - 为每一项填写 translatedText 字段
-                    - translatedText 必须是简体中文
+                    - Return ONLY valid JSON, with no code blocks, explanations, or extra text
+                    - Input is a JSON array
+                    - Preserve the id of each item
+                    - Maintain original array order
+                    - Do not omit any items
+                    - Do not summarize or alter formatting
+                    - Fill the translatedText field for each item
+                    - translatedText must be accurate and natural English
                     """.trimIndent(),
             ),
             ChatMessage(

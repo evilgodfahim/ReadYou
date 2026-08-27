@@ -78,12 +78,12 @@ private val NikoshBold =
 
 val GlobalFontFamily =
     FontFamily(
+        NikoshRegular,
+        NikoshBold,
         PlayfairRegular,
         PlayfairMedium,
         PlayfairSemiBold,
         PlayfairBold,
-        NikoshRegular,
-        NikoshBold,
     )
 
 val GoogleSansFontFamily = GlobalFontFamily

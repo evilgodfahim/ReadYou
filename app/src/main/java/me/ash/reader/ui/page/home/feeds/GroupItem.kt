@@ -1,37 +1,34 @@
 package me.ash.reader.ui.page.home.feeds
 
-import android.view.HapticFeedbackConstants
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ExpandLess
-import androidx.compose.material.icons.rounded.ExpandMore
-import androidx.compose.material3.Badge
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import me.ash.reader.R
 import me.ash.reader.domain.model.group.Group
-import me.ash.reader.domain.model.group.GroupWithFeed
 import me.ash.reader.ui.page.home.feeds.drawer.group.GroupOptionViewModel
-import me.ash.reader.ui.theme.Shape32
-import me.ash.reader.ui.theme.ShapeTop32
 
-@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun GroupItem(
     group: Group,
@@ -42,80 +39,63 @@ fun GroupItem(
     onLongClick: () -> Unit = {},
     groupOnClick: () -> Unit = {},
 ) {
-    val view = LocalView.current
+    val expanded = isExpanded()
 
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = {
-                    groupOnClick()
-                },
+                onClick = { groupOnClick() },
                 onLongClick = {
                     groupOptionViewModel.fetchGroup(groupId = group.id)
                     onLongClick()
                 }
             )
-            .padding(top = 22.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
+        Icon(
+            imageVector = if (expanded) Icons.Rounded.KeyboardArrowDown else Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+            contentDescription = stringResource(if (expanded) R.string.expand_less else R.string.expand_more),
+            tint = if (expanded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .size(24.dp)
+                .combinedClickable(
+                    onClick = { onExpanded() },
+                    onLongClick = {}
+                )
+        )
+
+        Spacer(modifier = Modifier.width(10.dp))
+
+        Text(
+            text = group.name,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = if (expanded) FontWeight.SemiBold else FontWeight.Medium,
+                fontSize = 15.sp,
+            ),
+            color = if (expanded) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+
+        if (articleCount > 0) {
             Text(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 28.dp, end = 12.dp),
-                text = group.name,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+                text = if (articleCount > 999) "1000+" else articleCount.toString(),
+                style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
+                color = MaterialTheme.colorScheme.outline,
+                modifier = Modifier.padding(start = 8.dp),
             )
-            Row(
-                modifier = Modifier.padding(end = 20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Badge(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    contentColor = MaterialTheme.colorScheme.outline,
-                ) {
-                    Text(
-                        text = articleCount.toString(),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                        .clickable { onExpanded() },
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Icon(
-                        imageVector = if (isExpanded()) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                        contentDescription = stringResource(if (isExpanded()) R.string.expand_less else R.string.expand_more),
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    )
-                }
-            }
         }
-        Spacer(modifier = Modifier.height(22.dp))
     }
 }
 
 @Composable
 inline fun GroupWithFeedsContainer(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     Column(
-        modifier = modifier
-            .padding(top = 16.dp)
-            .padding(horizontal = 16.dp)
-            .clip(Shape32)
-            .background(MaterialTheme.colorScheme.surfaceContainerLow),
+        modifier = modifier.fillMaxWidth(),
         content = { content() }
     )
 }
+

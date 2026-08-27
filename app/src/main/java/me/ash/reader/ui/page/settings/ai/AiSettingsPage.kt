@@ -491,13 +491,11 @@ fun AiSettingsPage(
                             apiKeyInput = it
                             saveCurrentConfiguration(key = it)
                         },
-                        label = { Text("API Key(s) - Comma separated for rotation") },
+                        label = { Text("API Key(s)") },
                         visualTransformation =
                             if (apiKeyVisible) VisualTransformation.None
                             else PasswordVisualTransformation(),
-                        minLines = 3,
-                        maxLines = 15,
-                        singleLine = false,
+                        singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -680,6 +678,9 @@ fun ActionItemCard(
                         fontWeight = FontWeight.SemiBold,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f, fill = false),
                     )
                     if (isDefault) {
                         Spacer(modifier = Modifier.width(8.dp))
@@ -692,6 +693,8 @@ fun ActionItemCard(
                                 fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                softWrap = false,
+                                maxLines = 1,
                             )
                         }
                     }

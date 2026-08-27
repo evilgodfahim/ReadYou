@@ -1,7 +1,7 @@
 package me.ash.reader.ui.page.home.reading
 
 private val DEFAULT_AI_CHAT_PROMPT =
-    "请基于提供的内容，用简体中文直接、清楚地回答问题；优先回答当前问题本身，不确定时请明确说明。"
+    "Based on the provided article content, answer questions directly and clearly in English. If uncertain, state so clearly."
 
 const val AI_CHAT_ROLE_USER = "user"
 const val AI_CHAT_ROLE_ASSISTANT = "assistant"
@@ -27,20 +27,20 @@ fun buildAiChatQuickQuestion(
     hasSelection: Boolean,
 ): String =
     when (action) {
-        AiChatQuickAction.ExplainArticle -> "请解释这篇文章在讲什么，并概括重点。"
-        AiChatQuickAction.ExplainSelection -> "请解释用户当前选中的这段内容是什么意思。"
+        AiChatQuickAction.ExplainArticle -> "Please explain what this article is about and summarize its key points."
+        AiChatQuickAction.ExplainSelection -> "Please explain what the currently selected text means."
         AiChatQuickAction.GiveBackground ->
             if (hasSelection) {
-                "请补充理解这段内容所需要的背景知识。"
+                "Please provide relevant background context needed to understand this selection."
             } else {
-                "请补充理解这篇文章所需要的背景知识。"
+                "Please provide relevant background context needed to understand this article."
             }
 
         AiChatQuickAction.Introduce ->
             if (hasSelection) {
-                "请用简单易懂的话介绍这段内容涉及的对象。"
+                "Please introduce the subject of this selection in simple terms."
             } else {
-                "请用简单易懂的话介绍这篇文章的核心主题。"
+                "Please introduce the core subject of this article in simple terms."
             }
     }
 

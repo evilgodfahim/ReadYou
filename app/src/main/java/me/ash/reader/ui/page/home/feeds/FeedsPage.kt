@@ -249,11 +249,11 @@ fun FeedsPage(
                     }
 
                     item {
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 26.dp),
+                                .padding(horizontal = 16.dp, vertical = 4.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -267,7 +267,6 @@ fun FeedsPage(
                                     if (hasGroupVisible) collapseAllGroups() else expandAllGroups()
                                 },
                                 modifier = Modifier
-                                    .padding(end = 8.dp)
                                     .size(28.dp),
                             ) {
                                 Icon(
@@ -279,7 +278,7 @@ fun FeedsPage(
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
 
                     itemsIndexed(groupWithFeedList) { _, (group, feeds) ->

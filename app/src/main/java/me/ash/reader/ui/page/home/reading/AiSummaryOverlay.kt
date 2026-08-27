@@ -27,17 +27,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.max
 import kotlin.math.min
 import me.ash.reader.R
 import me.ash.reader.infrastructure.preference.LocalReadingTextFontSize
+import me.ash.reader.ui.component.reader.bodyStyle
+import me.ash.reader.ui.component.reader.h3Style
 
 @Composable
 fun AiSummaryCard(
@@ -50,7 +59,6 @@ fun AiSummaryCard(
 ) {
     val view = LocalView.current
     val density = LocalDensity.current
-    val readingTextFontSize = LocalReadingTextFontSize.current
     val minVisibleHeight = with(density) { 24.dp.toPx() }
     var lastVisibility by remember { mutableStateOf<Boolean?>(null) }
 
@@ -157,16 +165,186 @@ fun AiSummaryCard(
                 }
 
                 if (summary.isNotEmpty()) {
-                    Text(
-                        text = summary,
-                        style =
-                            MaterialTheme.typography.bodyLarge.copy(
-                                fontSize = readingTextFontSize.sp,
-                            ),
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
+                    AiSummaryMarkdownContent(markdown = summary)
                 }
             }
         }
     }
 }
+
+@Composable
+fun AiSummaryMarkdownContent(
+    markdown: String,
+    modifier: Modifier = Modifier,
+) {
+    val blocks = remember(markdown) { parseAiChatMarkdownBlocks(markdown) }
+    val baseBodyStyle = bodyStyle()
+    val baseH3Style = h3Style()
+    val currentFontSize = LocalReadingTextFontSize.current.sp
+
+    Column(modifier = modifier.fillMaxWidth()) {
+        blocks.forEachIndexed { index, block ->
+            if (index > 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+            when (block) {
+                is AiChatMarkdownBlock.Heading -> {
+                    Text(
+                        text = buildMarkdownAnnotatedString(block.content),
+                        style = baseH3Style.copy(
+                            fontSize = (LocalReadingTextFontSize.current * 1.12f).sp,
+                            fontWeight = FontWeight.Bold,
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+
+                is AiChatMarkdownBlock.Paragraph -> {
+                    Text(
+                        text = buildMarkdownAnnotatedString(block.content),
+                        style = baseBodyStyle,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+
+                is AiChatMarkdownBlock.ListBlock -> {
+                    Column {
+                        block.items.forEach { item ->
+                            Row(modifier = Modifier.padding(start = (item.depth * 14).dp, bottom = 4.dp)) {
+                                Text(
+                                    text = "${item.marker} ",
+                                    style = baseBodyStyle,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                                Text(
+                                    text = buildMarkdownAnnotatedString(item.content),
+                                    style = baseBodyStyle,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
+                        }
+                    }
+                }
+
+                is AiChatMarkdownBlock.Quote -> {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainer,
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    ) {
+                        Text(
+                            text = buildMarkdownAnnotatedString(block.lines.joinToString("\n")),
+                            style = baseBodyStyle.copy(fontStyle = FontStyle.Italic),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(12.dp),
+                        )
+                    }
+                }
+
+                is AiChatMarkdownBlock.CodeBlock -> {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = block.code,
+                            style = baseBodyStyle.copy(
+                                fontFamily = FontFamily.Monospace,
+                                fontSize = (LocalReadingTextFontSize.current * 0.9f).sp,
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(12.dp),
+                        )
+                    }
+                }
+
+                is AiChatMarkdownBlock.Divider -> {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                }
+
+                is AiChatMarkdownBlock.Table -> {
+                    Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                        if (block.headers.isNotEmpty()) {
+                            Text(
+                                text = block.headers.joinToString(" | "),
+                                style = baseBodyStyle.copy(fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                        }
+                        block.rows.forEach { row ->
+                            Text(
+                                text = row.joinToString(" | "),
+                                style = baseBodyStyle,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun buildMarkdownAnnotatedString(
+    text: String,
+    highlightBg: Color = Color.Unspecified,
+): AnnotatedString {
+    return buildAnnotatedString {
+        var index = 0
+        while (index < text.length) {
+            when {
+                text.startsWith("***", index) || text.startsWith("___", index) -> {
+                    val delim = text.substring(index, index + 3)
+                    val end = text.indexOf(delim, index + 3)
+                    if (end != -1) {
+                        pushStyle(SpanStyle(fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic))
+                        append(text.substring(index + 3, end))
+                        pop()
+                        index = end + 3
+                        continue
+                    }
+                }
+
+                text.startsWith("**", index) || text.startsWith("__", index) -> {
+                    val delim = text.substring(index, index + 2)
+                    val end = text.indexOf(delim, index + 2)
+                    if (end != -1) {
+                        pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+                        append(text.substring(index + 2, end))
+                        pop()
+                        index = end + 2
+                        continue
+                    }
+                }
+
+                text.startsWith("*", index) || text.startsWith("_", index) -> {
+                    val delim = text[index]
+                    val end = text.indexOf(delim, index + 1)
+                    if (end != -1) {
+                        pushStyle(SpanStyle(fontStyle = FontStyle.Italic))
+                        append(text.substring(index + 1, end))
+                        pop()
+                        index = end + 1
+                        continue
+                    }
+                }
+
+                text.startsWith("`", index) -> {
+                    val end = text.indexOf('`', index + 1)
+                    if (end != -1) {
+                        pushStyle(SpanStyle(fontFamily = FontFamily.Monospace))
+                        append(text.substring(index + 1, end))
+                        pop()
+                        index = end + 1
+                        continue
+                    }
+                }
+            }
+            append(text[index])
+            index++
+        }
+    }
+}
+
