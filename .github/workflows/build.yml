@@ -22,10 +22,13 @@ jobs:
           DEBUG_KEYSTORE_BASE64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
         run: |
           if [ -n "$DEBUG_KEYSTORE_BASE64" ]; then
-            echo "Restoring keystore from GitHub Secret..."
+            echo "Restoring keystore from GitHub Secret DEBUG_KEYSTORE_BASE64..."
             echo "$DEBUG_KEYSTORE_BASE64" | base64 --decode > debug.keystore
+          elif [ -f debug.keystore.base64 ]; then
+            echo "Restoring keystore from repository debug.keystore.base64..."
+            base64 --decode debug.keystore.base64 > debug.keystore
           elif [ ! -f debug.keystore ]; then
-            echo "Keystore secret not found, generating temporary debug keystore..."
+            echo "Generating temporary debug keystore..."
             keytool -genkeypair -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
       - name: Build APK with Gradle Wrapper
