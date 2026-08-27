@@ -29,9 +29,9 @@ object WebViewStyle {
     private fun applyFontFamily(
         fontPath: String? = null
     ): String = if (fontPath != null) """
-        --font-family: external, 'Nikosh', serif;
+        --font-family: external, 'PlayfairDisplay', 'Nikosh', serif;
     """.trimIndent() else """
-        --font-family: 'Nikosh', 'PlayfairDisplay', serif;
+        --font-family: 'PlayfairDisplay', 'Nikosh', serif;
     """.trimIndent()
 
     fun get(

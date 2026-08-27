@@ -78,17 +78,20 @@ fun textHorizontalPadding(): Int = LocalReadingTextHorizontalPadding.current
 @Stable
 @Composable
 @ReadOnlyComposable
-fun bodyStyle(): TextStyle =
-    LocalTextStyle.current.merge(
+fun bodyStyle(): TextStyle {
+    val fontSize = LocalReadingTextFontSize.current
+    val lineHeightMultiple = LocalReadingTextLineHeight.current
+    return LocalTextStyle.current.merge(
         fontFamily = LocalReadingFonts.current.asFontFamily(LocalContext.current),
         fontWeight =
             if (LocalReadingTextBold.current.value) FontWeight.SemiBold else FontWeight.Normal,
-        fontSize = LocalReadingTextFontSize.current.sp,
+        fontSize = fontSize.sp,
         letterSpacing = LocalReadingTextLetterSpacing.current.sp,
-        lineHeight = LocalReadingTextLineHeight.current.sp,
+        lineHeight = (fontSize * lineHeightMultiple).sp,
         color = bodyForeground(),
         textAlign = LocalReadingTextAlign.current.toTextAlign(),
     )
+}
 
 @Stable
 @Composable
