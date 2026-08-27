@@ -20,7 +20,19 @@
 # hide the original source file name.
 -renamesourcefileattribute SourceFile
 
--dontobfuscate
+# Enable optimization and shrinking
+-repackageclasses
+-allowaccessmodification
+
+# Keep model and entity classes needed at runtime
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+-keepclassmembers class * implements java.io.Serializable { *; }
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao interface * { *; }
+-keep @kotlinx.serialization.Serializable class * { *; }
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
 
 # Disable ServiceLoader reproducibility-breaking optimizations
 -keep class kotlinx.coroutines.CoroutineExceptionHandler
@@ -33,9 +45,7 @@
 
 # Rome
 -keep class com.rometools.** { *; }
-
-# Provider API
--keep class me.ash.reader.** { *; }
+-dontwarn com.rometools.**
 
 # https://github.com/flutter/flutter/issues/127388
 -dontwarn org.kxml2.io.KXml**

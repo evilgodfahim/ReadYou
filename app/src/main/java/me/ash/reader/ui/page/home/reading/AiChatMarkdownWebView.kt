@@ -81,8 +81,8 @@ internal fun AiChatConversationContent(
     val fontPath =
         if (readingFonts is ReadingFontsPreference.External) {
             ExternalFonts.FontType.ReadingFont.toPath(context)
-        } else if (readingFonts is ReadingFontsPreference.GoogleSans) {
-            "/android_res/font/google_sans_flex.ttf"
+        } else if (readingFonts is ReadingFontsPreference.GoogleSans || readingFonts is ReadingFontsPreference.Serif) {
+            "/android_res/font/playfair_display.ttf"
         } else {
             null
         }

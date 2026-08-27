@@ -57,7 +57,7 @@ fun AiSummaryCard(
     Surface(
         modifier =
             Modifier.fillMaxWidth()
-                .padding(top = 20.dp)
+                .padding(top = 8.dp)
                 .onGloballyPositioned { coordinates ->
                     val bounds: Rect = coordinates.boundsInWindow()
                     val viewportWidth = view.width.toFloat()

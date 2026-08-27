@@ -68,8 +68,16 @@ android {
     }
     buildFeatures { buildConfig = true }
     packaging {
-        resources.excludes.add("/META-INF/{AL2.0,LGPL2.1}")
-        resources.excludes.add("rome-utils-*.jar")
+        resources {
+            excludes.add("/META-INF/{AL2.0,LGPL2.1}")
+            excludes.add("rome-utils-*.jar")
+            excludes.add("META-INF/DEPENDENCIES")
+            excludes.add("META-INF/LICENSE*")
+            excludes.add("META-INF/NOTICE*")
+            excludes.add("META-INF/*.version")
+            excludes.add("META-INF/*.properties")
+            excludes.add("META-INF/INDEX.LIST")
+        }
     }
     androidResources { generateLocaleConfig = true }
     composeCompiler { featureFlags = setOf(ComposeFeatureFlag.PausableComposition) }

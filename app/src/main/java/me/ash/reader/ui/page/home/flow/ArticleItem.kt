@@ -157,10 +157,10 @@ fun ArticleItem(
     Column(
         modifier =
             modifier
-                .padding(horizontal = 12.dp)
+                .padding(horizontal = 6.dp, vertical = 2.dp)
                 .clip(Shape20)
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-                .padding(horizontal = 12.dp, vertical = 12.dp)
+                .padding(horizontal = 10.dp, vertical = 8.dp)
                 .alpha(
                     when (articleListReadIndicator) {
                         FlowArticleReadIndicatorPreference.None -> 1f

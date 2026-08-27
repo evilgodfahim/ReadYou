@@ -406,24 +406,7 @@ fun AppEntry(backStack: NavBackStack<NavKey>) {
             },
         )
 
-        TtsFloatingPlayerButton(
-            visible =
-                showFloatingButton.value &&
-                    currentRoute != Route.Startup,
-            dockSide = dockSide,
-            verticalRatio = settings.readingTtsMiniPlayerVerticalRatio,
-            bottomPadding = 0.dp,
-            onPositionChange = { side, verticalRatio ->
-                scope.launch {
-                    context.dataStore.edit {
-                        it[readingTtsMiniPlayerDockSideKey] = side.name
-                        it[readingTtsMiniPlayerVerticalRatioKey] = verticalRatio
-                    }
-                }
-            },
-            onClick = openQueue,
-            onLongClick = overlayViewModel::toggleQueuePlayback,
-        )
+        // Floating playlist button removed per user request
 
         if (isQueueSheetMounted) {
             ModalBottomSheet(

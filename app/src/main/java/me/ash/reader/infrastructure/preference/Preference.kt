@@ -111,9 +111,18 @@ fun Preferences.toSettings(): Settings {
         // AI
         aiConfigPresets = presetState?.presets.orEmpty(),
         aiCurrentPresetId = presetState?.currentPresetId.orEmpty(),
-        aiBaseUrl = currentPreset?.let { AiBaseUrlPreference(it.baseUrl) } ?: AiBaseUrlPreference.fromPreferences(this),
-        aiApiKey = currentPreset?.let { AiApiKeyPreference(it.apiKey) } ?: AiApiKeyPreference.fromPreferences(this),
-        aiModel = currentPreset?.let { AiModelPreference(it.model) } ?: AiModelPreference.fromPreferences(this),
+        aiBaseUrl = AiBaseUrlPreference.fromPreferences(this).let { pref ->
+            if (pref.value != AiBaseUrlPreference.DEFAULT_BASE_URL) pref
+            else currentPreset?.let { AiBaseUrlPreference(it.baseUrl) } ?: pref
+        },
+        aiApiKey = AiApiKeyPreference.fromPreferences(this).let { pref ->
+            if (pref.value.isNotBlank()) pref
+            else currentPreset?.let { AiApiKeyPreference(it.apiKey) } ?: pref
+        },
+        aiModel = AiModelPreference.fromPreferences(this).let { pref ->
+            if (pref.value.isNotBlank()) pref
+            else currentPreset?.let { AiModelPreference(it.model) } ?: pref
+        },
         aiSummarizationPrompt = AiSummarizationPromptPreference.fromPreferences(this),
         aiCommuteBriefRecommendationPrompt = AiCommuteBriefRecommendationPromptPreference.fromPreferences(this),
         aiTranslationPrompt = AiTranslationPromptPreference.fromPreferences(this),

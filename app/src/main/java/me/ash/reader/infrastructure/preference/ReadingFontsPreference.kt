@@ -44,9 +44,9 @@ sealed class ReadingFontsPreference(val value: Int) : Preference() {
 
     fun toDesc(context: Context): String =
         when (this) {
-            GoogleSans -> context.getString(R.string.google_sans)
+            GoogleSans -> "Playfair & Nikosh"
             System -> context.getString(R.string.system_default)
-            Serif -> "Serif"
+            Serif -> "Playfair Display & Nikosh (Serif)"
             SansSerif -> "Sans-Serif"
             Monospace -> "Monospace"
             Cursive -> "Cursive"
@@ -56,8 +56,8 @@ sealed class ReadingFontsPreference(val value: Int) : Preference() {
     fun asFontFamily(context: Context): FontFamily =
         when (this) {
             GoogleSans -> GoogleSansFontFamily
-            System -> FontFamily.Default
-            Serif -> FontFamily.Serif
+            System -> GoogleSansFontFamily
+            Serif -> GoogleSansFontFamily
             SansSerif -> FontFamily.SansSerif
             Monospace -> FontFamily.Monospace
             Cursive -> FontFamily.Cursive

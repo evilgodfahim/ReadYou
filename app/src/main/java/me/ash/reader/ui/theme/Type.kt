@@ -40,79 +40,53 @@ val SystemTypography =
 internal fun TextStyle.applyTextDirection(textDirection: TextDirection = TextDirection.Content) =
     this.copy(textDirection = textDirection)
 
-private val GoogleSansRegular =
+private val PlayfairRegular =
     Font(
-        R.font.google_sans_flex,
+        R.font.playfair_display,
         weight = FontWeight.W400,
-        variationSettings = FontVariation.Settings(FontVariation.weight(400)),
     )
 
-private val GoogleSansMedium =
+private val PlayfairMedium =
     Font(
-        R.font.google_sans_flex,
+        R.font.playfair_display,
         weight = FontWeight.W500,
-        variationSettings = FontVariation.Settings(FontVariation.weight(500)),
     )
 
-private val GoogleSansSemiBold =
+private val PlayfairSemiBold =
     Font(
-        R.font.google_sans_flex,
+        R.font.playfair_display,
         weight = FontWeight.W600,
-        variationSettings = FontVariation.Settings(FontVariation.weight(600)),
     )
 
-private val GoogleSansBold =
+private val PlayfairBold =
     Font(
-        R.font.google_sans_flex,
+        R.font.playfair_display,
         weight = FontWeight.W700,
-        variationSettings = FontVariation.Settings(FontVariation.weight(700)),
     )
 
-private val GoogleSansItalic =
+private val NikoshRegular =
     Font(
-        R.font.google_sans_flex,
+        R.font.nikosh,
         weight = FontWeight.W400,
-        style = FontStyle.Italic,
-        variationSettings =
-            FontVariation.Settings(FontVariation.weight(400), FontVariation.italic(.5f)),
     )
-private val GoogleSansMediumItalic =
+
+private val NikoshBold =
     Font(
-        R.font.google_sans_flex,
-        weight = FontWeight.W500,
-        style = FontStyle.Italic,
-        variationSettings =
-            FontVariation.Settings(FontVariation.weight(500), FontVariation.italic(.5f)),
-    )
-private val GoogleSansSemiBoldItalic =
-    Font(
-        R.font.google_sans_flex,
-        weight = FontWeight.W600,
-        style = FontStyle.Italic,
-        variationSettings =
-            FontVariation.Settings(FontVariation.weight(600), FontVariation.italic(.5f)),
-    )
-private val GoogleSansBoldItalic =
-    Font(
-        R.font.google_sans_flex,
+        R.font.nikosh,
         weight = FontWeight.W700,
-        style = FontStyle.Italic,
-        variationSettings =
-            FontVariation.Settings(FontVariation.weight(700), FontVariation.italic(.5f)),
     )
-val GoogleSansFontFamily =
+
+val GlobalFontFamily =
     FontFamily(
-        Font(R.font.google_sans_flex),
-        GoogleSansRegular,
-        GoogleSansMedium,
-        GoogleSansSemiBold,
-        GoogleSansBold,
-        // Add the new italic fonts here
-        GoogleSansItalic,
-        GoogleSansMediumItalic,
-        GoogleSansSemiBoldItalic,
-        GoogleSansBoldItalic,
+        PlayfairRegular,
+        PlayfairMedium,
+        PlayfairSemiBold,
+        PlayfairBold,
+        NikoshRegular,
+        NikoshBold,
     )
+
+val GoogleSansFontFamily = GlobalFontFamily
 
 /**
  * Resolve the text to Rtl if the text requires BiDirectional

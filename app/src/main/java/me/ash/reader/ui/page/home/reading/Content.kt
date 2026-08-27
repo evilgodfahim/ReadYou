@@ -82,7 +82,7 @@ fun Content(
 
     val headline =
         @Composable {
-            Column(modifier = Modifier.then(maxWidthModifier).padding(horizontal = 12.dp)) {
+            Column(modifier = Modifier.then(maxWidthModifier).padding(horizontal = 4.dp)) {
                 DisableSelection {
                     Metadata(
                         feedName = feedName,
@@ -100,7 +100,7 @@ fun Content(
 
     val summarySection =
         @Composable {
-            Column(modifier = Modifier.then(maxWidthModifier).padding(horizontal = 12.dp)) {
+            Column(modifier = Modifier.then(maxWidthModifier).padding(horizontal = 4.dp)) {
                 AiSummaryCard(
                     summary = aiSummary.orEmpty(),
                     isLoading = isAiSummaryLoading,

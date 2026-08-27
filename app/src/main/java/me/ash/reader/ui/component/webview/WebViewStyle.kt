@@ -11,13 +11,28 @@ object WebViewStyle {
             font-family: external;
             src: url("file://$fontPath")
         }
-    """.trimIndent() else ""
+        @font-face {
+            font-family: 'Nikosh';
+            src: url("file:///android_res/font/nikosh.ttf");
+        }
+    """.trimIndent() else """
+        @font-face {
+            font-family: 'PlayfairDisplay';
+            src: url("file:///android_res/font/playfair_display.ttf");
+        }
+        @font-face {
+            font-family: 'Nikosh';
+            src: url("file:///android_res/font/nikosh.ttf");
+        }
+    """.trimIndent()
 
     private fun applyFontFamily(
         fontPath: String? = null
     ): String = if (fontPath != null) """
-        --font-family: external;
-    """.trimIndent() else ""
+        --font-family: external, 'Nikosh', serif;
+    """.trimIndent() else """
+        --font-family: 'PlayfairDisplay', 'Nikosh', serif;
+    """.trimIndent()
 
     fun get(
         fontSize: Int,

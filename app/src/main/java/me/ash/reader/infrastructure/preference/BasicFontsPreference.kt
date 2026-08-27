@@ -41,9 +41,9 @@ sealed class BasicFontsPreference(val value: Int) : Preference() {
     fun toDesc(context: Context): String =
         when (this) {
             System -> context.getString(R.string.system_default)
-            GoogleSans -> context.getString(R.string.google_sans)
+            GoogleSans -> "Playfair & Nikosh"
             External -> context.getString(R.string.external_fonts)
-            Serif -> "Times New Roman / Serif"
+            Serif -> "Playfair Display & Nikosh"
         }
 
     fun asFontFamily(context: Context): FontFamily =
@@ -51,15 +51,15 @@ sealed class BasicFontsPreference(val value: Int) : Preference() {
             System -> FontFamily.Default
             GoogleSans -> GoogleSansFontFamily
             External -> ExternalFonts.loadBasicTypography(context).bodyMedium.fontFamily ?: FontFamily.Default
-            Serif -> FontFamily.Serif
+            Serif -> GoogleSansFontFamily
         }
 
     fun asTypography(context: Context): Typography =
         when (this) {
-            System -> SystemTypography
+            System -> SystemTypography.applyFontFamily(GoogleSansFontFamily)
             GoogleSans -> SystemTypography.applyFontFamily(GoogleSansFontFamily)
             External -> ExternalFonts.loadBasicTypography(context)
-            Serif -> SystemTypography.applyFontFamily(FontFamily.Serif)
+            Serif -> SystemTypography.applyFontFamily(GoogleSansFontFamily)
         }
 
     companion object {
