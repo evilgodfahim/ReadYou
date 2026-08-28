@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Article
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material3.Icon
@@ -40,7 +41,8 @@ fun BoxScope.PullToLoadIndicator(
     modifier: Modifier = Modifier,
     state: PullToLoadState,
     canLoadPrevious: Boolean = true,
-    canLoadNext: Boolean = true
+    canLoadNext: Boolean = true,
+    isPullDownForFullContent: Boolean = true,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val status = state.status
@@ -63,7 +65,8 @@ fun BoxScope.PullToLoadIndicator(
     val absFraction = abs(fraction)
 
     val imageVector = when (status) {
-        PulledDown -> Icons.Rounded.KeyboardArrowUp
+        PulledDown -> if (isPullDownForFullContent) Icons.AutoMirrored.Rounded.Article else Icons.Rounded.KeyboardArrowUp
+        PullingDown -> if (isPullDownForFullContent) Icons.Rounded.KeyboardArrowDown else null
         PulledUp -> Icons.Rounded.KeyboardArrowDown
         else -> null
     }
@@ -101,7 +104,7 @@ fun BoxScope.PullToLoadIndicator(
                         y = (fraction * PullToLoadDefaults.ContentOffsetMultiple * .5f).dp.roundToPx()
                     )
                 }
-                .width(36.dp),
+                .width(if (isPullDownForFullContent && fraction > 0f) 40.dp else 36.dp),
             color = MaterialTheme.colorScheme.primaryFixed,
             shape = MaterialTheme.shapes.extraLarge
         ) {

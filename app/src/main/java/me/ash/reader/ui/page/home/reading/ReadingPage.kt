@@ -42,6 +42,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -70,6 +71,7 @@ import me.ash.reader.infrastructure.preference.LocalReadingTextLineHeight
 import me.ash.reader.infrastructure.preference.ReadingRendererPreference
 import me.ash.reader.infrastructure.preference.not
 import me.ash.reader.ui.ext.collectAsStateValue
+import me.ash.reader.ui.ext.onArticleDoubleTap
 import me.ash.reader.ui.ext.openURL
 import me.ash.reader.ui.ext.showToast
 import me.ash.reader.ui.page.adaptive.ArticleListReaderViewModel
@@ -262,7 +264,12 @@ fun ReadingPage(
                         onNavButtonClick = onNavAction,
                         onNavigateToStylePage = onNavigateToStylePage,
                         isAiSummaryLoading = readingUiState.isAiSummaryLoading,
-                        onAiSummaryClick = { coroutineScope.launch { viewModel.summarizeCurrentArticle() } },
+                        onAiSummaryClick = {
+                            coroutineScope.launch {
+                                viewModel.summarizeCurrentArticle()
+                                bringToTop = true
+                            }
+                        },
                         isAiSummaryReady = readingUiState.shouldShowAiSummaryReadyPrompt,
                         isAiSummaryReturnAvailable = summaryReturnTarget != null,
                         onAiChatClick = {
@@ -358,19 +365,18 @@ fun ReadingPage(
                                     rememberPullToLoadState(
                                         key = content,
                                         onLoadNext =
-                                            if (isNextArticleAvailable) {
+                                            if (isPullToSwitchArticleEnabled && isNextArticleAvailable) {
                                                 {
                                                     val (id, index) = readerState.nextArticle
                                                     onLoadArticle(id, index)
                                                 }
                                             } else null,
-                                        onLoadPrevious =
-                                            if (isPreviousArticleAvailable) {
-                                                {
-                                                    val (id, index) = readerState.previousArticle
-                                                    onLoadArticle(id, index)
-                                                }
-                                            } else null,
+                                        onLoadPrevious = {
+                                            if (readerState.content !is ReaderState.FullContent) {
+                                                context.showToast(context.getString(R.string.parse_full_content))
+                                            }
+                                            viewModel.renderFullContent()
+                                        },
                                     )
 
                                 val listState =
@@ -488,8 +494,9 @@ fun ReadingPage(
                                             .launch {
                                                 if (scrollState.value != 0) {
                                                     scrollState.animateScrollTo(0)
-                                                } else if (listState.firstVisibleItemIndex != 0) {
-                                                    listState.animateScrollToItem(0)
+                                                }
+                                                if (listState.firstVisibleItemIndex != 0 || listState.firstVisibleItemScrollOffset != 0) {
+                                                    listState.animateScrollToItem(0, 0)
                                                 }
                                             }
                                             .invokeOnCompletion { bringToTop = false }
@@ -517,7 +524,14 @@ fun ReadingPage(
                                         }
                                 ) {
                                     Box(
-                                        modifier = Modifier.fillMaxSize(),
+                                        modifier =
+                                            Modifier.fillMaxSize().onArticleDoubleTap {
+                                                hapticFeedback.performHapticFeedback(
+                                                    HapticFeedbackType.GestureThresholdActivate
+                                                )
+                                                viewModel.summarizeOrShowAiSummary()
+                                                bringToTop = true
+                                            },
                                         contentAlignment = Alignment.Center,
                                     ) {
                                         Content(
@@ -528,7 +542,7 @@ fun ReadingPage(
                                                         if (abs(f) > 2f)
                                                             isReaderScrollingDown = f < 0f
                                                     },
-                                                    enabled = isPullToSwitchArticleEnabled,
+                                                    enabled = true,
                                                 ),
                                             contentPadding = paddings,
                                             content = content.text ?: "",
@@ -541,6 +555,8 @@ fun ReadingPage(
                                             aiSummaryError = readingUiState.aiSummaryError,
                                             isAiSummaryExpanded =
                                                 readingUiState.isAiSummaryExpanded,
+                                            isAiSummaryVisible =
+                                                readingUiState.isAiSummaryVisible,
                                             translatedContentBlocks =
                                                 readingUiState.translatedContentBlocks,
                                             contentBlocks = contentBlocks,
@@ -564,11 +580,19 @@ fun ReadingPage(
                                                 viewModel.updateAiSummaryCardVisible(it)
                                             },
                                             onWebViewReady = { currentWebView = it },
+                                            onDoubleTap = {
+                                                hapticFeedback.performHapticFeedback(
+                                                    HapticFeedbackType.GestureThresholdActivate
+                                                )
+                                                viewModel.summarizeOrShowAiSummary()
+                                                bringToTop = true
+                                            },
                                         )
                                         PullToLoadIndicator(
                                             state = state,
-                                            canLoadPrevious = isPreviousArticleAvailable,
-                                            canLoadNext = isNextArticleAvailable,
+                                            canLoadPrevious = true,
+                                            canLoadNext = isPullToSwitchArticleEnabled && isNextArticleAvailable,
+                                            isPullDownForFullContent = true,
                                         )
                                     }
                                 }
@@ -662,23 +686,6 @@ fun ReadingPage(
                 onClearSelectedSnippet = viewModel::clearAiChatSelectedSnippet,
                 onClose = viewModel::closeAiChatSheet,
             )
-        }
-    }
-    if (readingUiState.isAiSummaryVisible) {
-        ModalBottomSheet(
-            onDismissRequest = { viewModel.hideAiSummary() },
-            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        ) {
-            Box(modifier = Modifier.padding(16.dp)) {
-                AiSummaryCard(
-                    summary = readingUiState.aiSummary.orEmpty(),
-                    isLoading = readingUiState.isAiSummaryInlineLoading,
-                    error = readingUiState.aiSummaryError,
-                    isExpanded = readingUiState.isAiSummaryExpanded,
-                    onToggleExpanded = { /* Not used in bottom sheet */ },
-                    onVisibilityChanged = { },
-                )
-            }
         }
     }
     if (showFullScreenImageViewer) {

@@ -47,6 +47,7 @@ fun Content(
     isAiSummaryLoading: Boolean,
     aiSummaryError: String?,
     isAiSummaryExpanded: Boolean,
+    isAiSummaryVisible: Boolean = false,
     translatedContentBlocks: String?,
     contentBlocks: List<ArticleContentBlock>,
     translatedBlockMap: Map<String, String>,
@@ -63,6 +64,7 @@ fun Content(
     onAiSummaryToggleExpand: () -> Unit = {},
     onAiSummaryVisibilityChanged: (Boolean) -> Unit = {},
     onWebViewReady: (WebView) -> Unit = {},
+    onDoubleTap: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val subheadUpperCase = LocalReadingSubheadUpperCase.current
@@ -100,6 +102,18 @@ fun Content(
 
     val summarySection =
         @Composable {
+            if (isAiSummaryVisible) {
+                Column(modifier = Modifier.then(maxWidthModifier).padding(horizontal = 4.dp)) {
+                    AiSummaryCard(
+                        summary = aiSummary.orEmpty(),
+                        isLoading = isAiSummaryLoading,
+                        error = aiSummaryError,
+                        isExpanded = isAiSummaryExpanded,
+                        onToggleExpanded = onAiSummaryToggleExpand,
+                        onVisibilityChanged = onAiSummaryVisibilityChanged,
+                    )
+                }
+            }
         }
 
     if (isLoading) {
@@ -124,6 +138,10 @@ fun Content(
                             Spacer(modifier = Modifier.height(64.dp))
                             // padding
                             headline()
+                            if (isAiSummaryVisible) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                summarySection()
+                            }
                             Spacer(modifier = Modifier.height(16.dp))
 
                             RYWebView(
@@ -142,6 +160,7 @@ fun Content(
                                 onImageClick = onImageClick,
                                 onWebViewReady = onWebViewReady,
                                 onScrollDelta = { delta -> scrollState.dispatchRawDelta(delta) },
+                                onDoubleTap = onDoubleTap,
                             )
                             Spacer(modifier = Modifier.height(128.dp))
                             Spacer(
@@ -167,7 +186,12 @@ fun Content(
                             headline()
                         }
 
-                        item(key = AI_SUMMARY_NATIVE_ITEM_KEY) { }
+                        if (isAiSummaryVisible) {
+                            item(key = AI_SUMMARY_NATIVE_ITEM_KEY) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                summarySection()
+                            }
+                        }
 
                         item(key = "reading_ai_summary_spacing") {
                             Spacer(modifier = Modifier.height(16.dp))

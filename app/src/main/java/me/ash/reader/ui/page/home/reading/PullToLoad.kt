@@ -240,12 +240,13 @@ class PullToLoadState internal constructor(
 
         when (status) {
             Status.PulledDown -> {
-                onLoadPrevious.value?.let { it() } ?: animateDistanceTo(0f)
-
+                onLoadPrevious.value?.let { it() }
+                animateDistanceTo(0f)
             }
 
             Status.PulledUp -> {
-                onLoadNext.value?.let { it() } ?: animateDistanceTo(0f)
+                onLoadNext.value?.let { it() }
+                animateDistanceTo(0f)
             }
 
             else -> {

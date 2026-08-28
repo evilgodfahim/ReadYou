@@ -3,6 +3,7 @@ package me.ash.reader.ui.component.webview
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -21,8 +22,13 @@ object WebViewLayout {
         onImageClick: ((imgUrl: String, altText: String) -> Unit)? = null,
         onContentHeightChanged: ((height: Int) -> Unit)? = null,
         onScrollDelta: ((Float) -> Unit)? = null,
+        onDoubleTap: (() -> Unit)? = null,
     ): WebView =
-        OuterScrollWebView(context = context, onScrollDelta = onScrollDelta).apply {
+        OuterScrollWebView(
+            context = context,
+            onScrollDelta = onScrollDelta,
+            onDoubleTap = onDoubleTap,
+        ).apply {
             this.webViewClient = webViewClient
             scrollBarSize = 0
             isHorizontalScrollBarEnabled = false
@@ -77,13 +83,25 @@ object WebViewLayout {
     private class OuterScrollWebView(
         context: Context,
         private val onScrollDelta: ((Float) -> Unit)?,
+        private val onDoubleTap: (() -> Unit)? = null,
     ) : WebView(context) {
         private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
+        private val gestureDetector =
+            GestureDetector(
+                context,
+                object : GestureDetector.SimpleOnGestureListener() {
+                    override fun onDoubleTap(e: MotionEvent): Boolean {
+                        onDoubleTap?.invoke()
+                        return true
+                    }
+                },
+            )
         private var downY = 0f
         private var lastY = 0f
         private var dragging = false
 
         override fun onTouchEvent(event: MotionEvent): Boolean {
+            gestureDetector.onTouchEvent(event)
             if (onScrollDelta == null) return super.onTouchEvent(event)
 
             when (event.actionMasked) {

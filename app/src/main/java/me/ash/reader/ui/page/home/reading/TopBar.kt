@@ -167,6 +167,15 @@ fun TopBar(
                                     color = MaterialTheme.colorScheme.primary,
                                 )
                             }
+                        } else {
+                            FeedbackIconButton(
+                                modifier = Modifier.size(22.dp),
+                                imageVector = Icons.Outlined.Psychology,
+                                contentDescription = stringResource(R.string.ai_summary),
+                                tint = MaterialTheme.colorScheme.onSurface,
+                            ) {
+                                onAiSummaryClick()
+                            }
                         }
                         FeedbackIconButton(
                             modifier = Modifier.size(22.dp),

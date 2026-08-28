@@ -661,6 +661,14 @@ constructor(
         requestAiSummary(SummaryTrigger.MANUAL)
     }
 
+    fun summarizeOrShowAiSummary() {
+        if (readingUiState.value.aiSummary != null && (!readingUiState.value.isAiSummaryVisible || !readingUiState.value.isAiSummaryExpanded)) {
+            showAiSummaryFromPrompt()
+        } else {
+            summarizeCurrentArticle()
+        }
+    }
+
     fun autoSummarizeCurrentArticle() {
         // Disabled: AI summary is manual-only per user preference
     }

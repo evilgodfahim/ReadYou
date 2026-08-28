@@ -47,6 +47,7 @@ fun RYWebView(
     onImageClick: ((imgUrl: String, altText: String) -> Unit)? = null,
     onWebViewReady: (WebView) -> Unit = {},
     onScrollDelta: ((Float) -> Unit)? = null,
+    onDoubleTap: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val maxWidth = LocalConfiguration.current.screenWidthDp.dp.value
@@ -97,6 +98,7 @@ fun RYWebView(
                         contentHeightDp = height.coerceAtLeast(1)
                     },
                     onScrollDelta = onScrollDelta,
+                    onDoubleTap = onDoubleTap,
                 )
             )
         }
