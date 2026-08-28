@@ -1,4 +1,5 @@
 package me.ash.reader.ui.page.home.reading.tts
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -9,7 +10,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Headphones
 import androidx.compose.material.icons.rounded.Stop
@@ -88,7 +88,7 @@ fun TtsButton(
                 Box(
                     modifier = modifier
                         .size(40.dp)
-                        .clip(CircleShape)
+                        .clip(RoundedCornerShape(8.dp))
                         .combinedClickable(
                             onClick = {
                                 hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
@@ -120,7 +120,7 @@ fun TtsButton(
                 Box(
                     modifier = modifier
                         .size(40.dp)
-                        .clip(CircleShape)
+                        .clip(RoundedCornerShape(8.dp))
                         .combinedClickable(
                             onClick = {
                                 hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)

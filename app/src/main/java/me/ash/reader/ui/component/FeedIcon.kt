@@ -1,9 +1,9 @@
 package me.ash.reader.ui.component
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -42,7 +42,7 @@ fun FeedIcon(
         Base64Image(
             modifier = modifier
                 .size(size)
-                .clip(CircleShape),
+                .clip(RoundedCornerShape(4.dp)),
             base64Uri = iconUrl,
             onEmpty = { FontIcon(modifier, size, feedName ?: "") },
         )
@@ -50,7 +50,7 @@ fun FeedIcon(
         RYAsyncImage(
             modifier = modifier
                 .size(size)
-                .clip(CircleShape),
+                .clip(RoundedCornerShape(4.dp)),
             contentDescription = feedName ?: "",
             data = iconUrl,
             placeholder = null,
@@ -72,7 +72,7 @@ private fun FontIcon(modifier: Modifier, size: Dp, feedName: String) {
     Box(
         modifier = modifier
             .size(size)
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(4.dp))
             .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center,
     ) {

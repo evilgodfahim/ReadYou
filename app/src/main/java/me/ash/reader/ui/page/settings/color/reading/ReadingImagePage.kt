@@ -1,4 +1,5 @@
 package me.ash.reader.ui.page.settings.color.reading
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets

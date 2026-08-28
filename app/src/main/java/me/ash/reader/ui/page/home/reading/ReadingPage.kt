@@ -17,6 +17,7 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -608,6 +609,7 @@ fun ReadingPage(
                         onReadAloud = {
                             viewModel.playCurrentArticleNow()
                         },
+                        onAiSummaryClick = { coroutineScope.launch { viewModel.summarizeCurrentArticle() } },
                         ttsButton = {
                             TtsButton(
                                 onClick = {
@@ -660,6 +662,23 @@ fun ReadingPage(
                 onClearSelectedSnippet = viewModel::clearAiChatSelectedSnippet,
                 onClose = viewModel::closeAiChatSheet,
             )
+        }
+    }
+    if (readingUiState.isAiSummaryVisible) {
+        ModalBottomSheet(
+            onDismissRequest = { viewModel.hideAiSummary() },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        ) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                AiSummaryCard(
+                    summary = readingUiState.aiSummary.orEmpty(),
+                    isLoading = readingUiState.isAiSummaryInlineLoading,
+                    error = readingUiState.aiSummaryError,
+                    isExpanded = readingUiState.isAiSummaryExpanded,
+                    onToggleExpanded = { /* Not used in bottom sheet */ },
+                    onVisibilityChanged = { },
+                )
+            }
         }
     }
     if (showFullScreenImageViewer) {

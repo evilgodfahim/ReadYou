@@ -1,4 +1,5 @@
 package me.ash.reader.ui.page.home.reading
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedVisibility
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.rounded.Article
@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.compose.material.icons.outlined.Psychology
 import me.ash.reader.R
 import me.ash.reader.infrastructure.preference.LocalReadingPageTonalElevation
 import me.ash.reader.infrastructure.preference.LocalReadingRenderer
@@ -64,6 +65,7 @@ fun BottomBar(
     onFullContentLongClick: () -> Unit = {},
     onBoldCharacters: () -> Unit = {},
     onReadAloud: () -> Unit = {},
+    onAiSummaryClick: () -> Unit = {},
 ) {
     val tonalElevation = LocalReadingPageTonalElevation.current
     val isOutlined = tonalElevation == ReadingPageTonalElevationPreference.Outlined
@@ -103,54 +105,17 @@ fun BottomBar(
                         CanBeDisabledIconButton(
                             modifier = Modifier.size(40.dp),
                             disabled = false,
-                            imageVector = if (isUnread) {
-                                Icons.Filled.FiberManualRecord
-                            } else {
-                                Icons.Outlined.FiberManualRecord
-                            },
-                            contentDescription = stringResource(if (isUnread) R.string.mark_as_read else R.string.mark_as_unread),
-                            tint = if (isUnread) {
-                                MaterialTheme.colorScheme.onSecondaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.outline
-                            },
+                            imageVector = Icons.Outlined.Psychology,
+                            contentDescription = stringResource(R.string.ai_summary),
+                            tint = MaterialTheme.colorScheme.onSurface,
                         ) {
                             view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                            onUnread(!isUnread)
+                            onAiSummaryClick()
                         }
-                        CanBeDisabledIconButton(
-                            modifier = Modifier.size(40.dp),
-                            disabled = false,
-                            imageVector = if (isStarred) {
-                                Icons.Rounded.Star
-                            } else {
-                                Icons.Rounded.StarOutline
-                            },
-                            contentDescription = stringResource(if (isStarred) R.string.mark_as_unstar else R.string.mark_as_starred),
-                            tint = if (isStarred) {
-                                MaterialTheme.colorScheme.onSecondaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.outline
-                            },
-                        ) {
-                            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                            onStarred(!isStarred)
-                        }
-                        CanBeDisabledIconButton(
-                            disabled = !isNextArticleAvailable,
-                            modifier = Modifier.size(40.dp),
-                            imageVector = Icons.Rounded.ExpandMore,
-                            contentDescription = "Next Article",
-                            tint = MaterialTheme.colorScheme.outline,
-                        ) {
-                            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
-                            onNextArticle()
-                        }
-                        ttsButton()
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
-                                .clip(CircleShape)
+                                .clip(RoundedCornerShape(8.dp))
                                 .combinedClickable(
                                     onClick = {
                                         view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)

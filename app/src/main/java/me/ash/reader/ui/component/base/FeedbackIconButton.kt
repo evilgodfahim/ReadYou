@@ -1,9 +1,9 @@
 package me.ash.reader.ui.component.base
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import android.view.HapticFeedbackConstants
 import android.view.SoundEffectConstants
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -40,7 +40,7 @@ fun FeedbackIconButton(
                 Badge(
                     modifier = Modifier
                         .size(8.dp)
-                        .clip(CircleShape),
+                        .clip(RoundedCornerShape(8.dp)),
                     containerColor = MaterialTheme.colorScheme.error,
                     contentColor = MaterialTheme.colorScheme.onError,
                 )

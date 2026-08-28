@@ -62,7 +62,7 @@ fun AppTheme(
     ProvideZcamViewingConditions {
         CompositionLocalProvider(
             LocalTonalPalettes provides tonalPalettes.apply { Preparing() },
-            LocalTextStyle provides LocalTextStyle.current.merge(fontFamily = GoogleSansFontFamily).applyTextDirection(),
+            LocalTextStyle provides LocalTextStyle.current.merge(fontFamily = FontFamily.SansSerif).applyTextDirection(),
         ) {
             val lightColors = dynamicLightColorScheme()
             val darkColors = dynamicDarkColorScheme()

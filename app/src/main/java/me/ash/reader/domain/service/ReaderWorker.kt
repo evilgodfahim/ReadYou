@@ -29,7 +29,7 @@ constructor(
         val accountId = inputData.getInt(SyncWorker.INPUT_ACCOUNT_ID, -1)
         require(accountId != -1)
         val account = accountService.getAccountById(accountId) ?: return Result.failure()
-        val semaphore = Semaphore(2)
+        val semaphore = Semaphore(16)
 
         val deferredList =
             withContext(Dispatchers.IO) {

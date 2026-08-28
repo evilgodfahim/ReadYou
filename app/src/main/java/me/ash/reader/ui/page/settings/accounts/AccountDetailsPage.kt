@@ -1,4 +1,5 @@
 package me.ash.reader.ui.page.settings.accounts
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import android.content.Context
 import android.net.Uri
@@ -17,7 +18,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -436,7 +436,7 @@ fun AccountDetailsPage(
                 ) { option ->
                     Row(
                         modifier =
-                            Modifier.fillMaxWidth().clip(CircleShape).clickable {
+                            Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp)).clickable {
                                 option.onClick()
                             },
                         verticalAlignment = Alignment.CenterVertically,

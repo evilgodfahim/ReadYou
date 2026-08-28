@@ -1,4 +1,5 @@
 package me.ash.reader.ui.page.home.reading.queue
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -13,7 +14,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.Icon
@@ -291,7 +291,7 @@ fun TtsFloatingPlayerButton(
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    shape = CircleShape,
+                    shape = RoundedCornerShape(8.dp),
                     tonalElevation = 6.dp,
                     shadowElevation = 6.dp,
                     color = MaterialTheme.colorScheme.primaryContainer,

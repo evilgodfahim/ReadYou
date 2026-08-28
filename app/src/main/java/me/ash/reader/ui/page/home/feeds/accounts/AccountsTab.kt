@@ -1,4 +1,5 @@
 package me.ash.reader.ui.page.home.feeds.accounts
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.rounded.Add
@@ -101,7 +101,7 @@ private fun IconContainer(
         modifier =
             modifier
                 .size(52.dp)
-                .clip(CircleShape)
+                .clip(RoundedCornerShape(6.dp))
                 .background(
                     if (selected) {
                         MaterialTheme.colorScheme.primaryFixed

@@ -43,16 +43,28 @@ class OpmlService @Inject constructor(
     @Throws(Exception::class)
     suspend fun saveToDatabase(inputStream: InputStream) {
         withContext(ioDispatcher) {
-            val defaultGroup = groupDao.queryById(getDefaultGroupId(context.currentAccountId))!!
+            val accountId = context.currentAccountId
+            val defaultGroup = groupDao.queryById(getDefaultGroupId(accountId))!!
+            val existingGroups = groupDao.queryAll(accountId).toMutableList()
+            
             val groupWithFeedList =
-                OPMLDataSource.parseFileInputStream(inputStream, defaultGroup, context.currentAccountId)
+                OPMLDataSource.parseFileInputStream(inputStream, defaultGroup, accountId)
+            
             groupWithFeedList.forEach { groupWithFeed ->
-                if (groupWithFeed.group != defaultGroup) {
-                    groupDao.insert(groupWithFeed.group)
+                var targetGroup = groupWithFeed.group
+                if (targetGroup != defaultGroup) {
+                    val existing = existingGroups.find { it.name == targetGroup.name }
+                    if (existing != null) {
+                        targetGroup = existing
+                    } else {
+                        groupDao.insert(targetGroup)
+                        existingGroups.add(targetGroup)
+                    }
                 }
+                
                 val repeatList = mutableListOf<Feed>()
                 groupWithFeed.feeds.forEach {
-                    it.groupId = groupWithFeed.group.id
+                    it.groupId = targetGroup.id
                     if (rssService.get().isFeedExist(it.url)) {
                         repeatList.add(it)
                     }

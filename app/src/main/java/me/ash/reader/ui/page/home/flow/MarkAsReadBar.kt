@@ -1,4 +1,5 @@
 package me.ash.reader.ui.page.home.flow
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import android.view.HapticFeedbackConstants
 import android.view.SoundEffectConstants
@@ -7,7 +8,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
@@ -358,6 +359,18 @@ fun FlowPage(
     }
 
     val isSyncing = viewModel.isSyncingFlow.collectAsStateValue()
+    
+    var previousSyncing by remember { mutableStateOf(isSyncing) }
+    LaunchedEffect(isSyncing) {
+        if (previousSyncing && !isSyncing) {
+            // Wait for items to be updated in the Pager
+            kotlinx.coroutines.delay(300)
+            if (pagingItems?.itemCount ?: 0 > 0) {
+                listState.animateScrollToItem(0)
+            }
+        }
+        previousSyncing = isSyncing
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         RYScaffold(
@@ -613,7 +626,7 @@ fun FlowPage(
                     if (settings.flowArticleListDateStickyHeader.value) {
                         LaunchedEffect(firstVisibleIndex, pagingItems) {
                             firstVisibleIndex.collect {
-                                if (it in 0..25 && pagingItems.itemCount > 0) {
+                                if (it in 0..25 && pagingItems?.itemCount ?: 0 > 0) {
                                     pagingItems.get(0)
                                 }
                             }

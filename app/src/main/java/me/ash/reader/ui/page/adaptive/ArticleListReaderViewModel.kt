@@ -1404,6 +1404,10 @@ constructor(
         }
     }
 
+    fun hideAiSummary() {
+        _readingUiState.update { it.copy(shouldRenderAiSummaryInline = false) }
+    }
+
     fun clearHiddenTranslationError() {
         _readingUiState.update {
             if (it.shouldRenderTranslationInline) it else it.copy(translationError = null)

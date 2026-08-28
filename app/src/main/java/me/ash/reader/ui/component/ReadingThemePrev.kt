@@ -1,12 +1,11 @@
 package me.ash.reader.ui.component
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -70,7 +69,7 @@ fun ReadingThemePrev(
         Box(modifier = Modifier
             .padding(horizontal = 12.dp)
             .size(width = 32.dp, height = 4.dp)
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.tertiaryContainer)
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -79,7 +78,7 @@ fun ReadingThemePrev(
             .padding(horizontal = 12.dp)
             .fillMaxWidth()
             .height(12.dp)
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
         )
         Spacer(modifier = Modifier.height(4.dp))
@@ -91,14 +90,14 @@ fun ReadingThemePrev(
             Box(modifier = Modifier
                 .weight(1f)
                 .fillMaxSize()
-                .clip(CircleShape)
+                .clip(RoundedCornerShape(8.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
             )
             Box(modifier = Modifier
                 .padding(start = 4.dp)
                 .weight(2f)
                 .fillMaxSize()
-                .clip(CircleShape)
+                .clip(RoundedCornerShape(8.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant)
             )
         }
@@ -127,7 +126,7 @@ fun ReadingThemePrev(
             .padding(horizontal = 12.dp)
             .width(100.dp)
             .height(12.dp)
-            .clip(CircleShape)
+            .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
         )
         Spacer(modifier = Modifier.height(14.dp))

@@ -1,8 +1,8 @@
 package me.ash.reader.ui.component.base
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.CornerSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline

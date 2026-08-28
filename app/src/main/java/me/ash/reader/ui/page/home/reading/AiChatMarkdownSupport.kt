@@ -323,7 +323,7 @@ private fun buildListHtml(items: List<ListItem>): String {
     items.forEach { item ->
         val normalizedDepth = item.depth.coerceAtLeast(0).coerceAtMost(stack.size)
         while (stack.size > normalizedDepth) {
-            stack.removeLast()
+            stack.removeAt(stack.lastIndex)
         }
 
         val node = ListNode(item = item)

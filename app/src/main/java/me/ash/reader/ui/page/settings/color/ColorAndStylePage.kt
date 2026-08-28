@@ -1,4 +1,5 @@
 package me.ash.reader.ui.page.settings.color
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import android.content.Context
 import android.os.Build
@@ -27,8 +28,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.outlined.Check
@@ -366,7 +365,7 @@ fun SelectableMiniPalette(
                 .clickable { onClick() }
                 .padding(16.dp)
                 .size(48.dp),
-            shape = CircleShape,
+            shape = RoundedCornerShape(8.dp),
             color = palette primary 90,
         ) {
             Box {
@@ -386,7 +385,7 @@ fun SelectableMiniPalette(
                     visible = selected,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .clip(CircleShape)
+                        .clip(RoundedCornerShape(8.dp))
                         .background(MaterialTheme.colorScheme.primary),
                     enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
                     exit = shrinkOut(shrinkTowards = Alignment.Center) + fadeOut()

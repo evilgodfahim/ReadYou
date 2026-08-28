@@ -32,7 +32,7 @@ jobs:
             keytool -genkeypair -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
       - name: Build APK with Gradle Wrapper
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --build-cache --parallel
       - name: Rename APK
         run: mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/ReadYou-${{ github.sha }}.apk
       - uses: actions/upload-artifact@v4

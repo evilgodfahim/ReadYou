@@ -68,7 +68,7 @@ constructor(
             require(currentAccount.type.id == AccountType.Local.id) {
                 "Account type is invalid"
             }
-            val semaphore = Semaphore(16)
+            val semaphore = Semaphore(64)
 
             val feedsToSync =
                 when {

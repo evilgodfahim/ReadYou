@@ -34,6 +34,9 @@ android {
         room { schemaDirectory("$projectDir/schemas") }
 
         ksp { arg("room.incremental", "true") }
+        ndk {
+            abiFilters.add("arm64-v8a")
+        }
     }
 
     signingConfigs {

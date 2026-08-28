@@ -134,7 +134,7 @@ val GlobalFontFamily =
         NikoshBoldItalic,
     )
 
-val GoogleSansFontFamily = GlobalFontFamily
+val GoogleSansFontFamily = FontFamily.SansSerif
 
 /**
  * Resolve the text to Rtl if the text requires BiDirectional

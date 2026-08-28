@@ -56,7 +56,7 @@ sealed class BasicFontsPreference(val value: Int) : Preference() {
 
     fun asTypography(context: Context): Typography =
         when (this) {
-            System -> SystemTypography.applyFontFamily(GoogleSansFontFamily)
+            System -> SystemTypography.applyFontFamily(FontFamily.SansSerif)
             GoogleSans -> SystemTypography.applyFontFamily(GoogleSansFontFamily)
             External -> ExternalFonts.loadBasicTypography(context)
             Serif -> SystemTypography.applyFontFamily(GoogleSansFontFamily)
@@ -64,7 +64,7 @@ sealed class BasicFontsPreference(val value: Int) : Preference() {
 
     companion object {
 
-        val default = Serif
+        val default = System
         val values = listOf(Serif, GoogleSans, System, External)
 
         fun fromPreferences(preferences: Preferences): BasicFontsPreference =

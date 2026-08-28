@@ -1,4 +1,5 @@
 package me.ash.reader.ui.widget
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import android.app.Activity
 import android.appwidget.AppWidgetManager
@@ -19,7 +20,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.ButtonGroup
@@ -108,7 +108,7 @@ class WidgetConfigActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         floatingActionButton = {
                             MediumFloatingActionButton(
-                                shape = CircleShape,
+                                shape = RoundedCornerShape(8.dp),
                                 elevation = FloatingActionButtonDefaults.loweredElevation(),
                                 containerColor = MaterialTheme.colorScheme.primaryFixed,
                                 contentColor = MaterialTheme.colorScheme.onPrimaryFixedVariant,

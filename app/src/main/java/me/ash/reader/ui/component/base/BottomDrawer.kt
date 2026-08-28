@@ -1,9 +1,8 @@
 package me.ash.reader.ui.component.base
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetDefaults
 import androidx.compose.material.ModalBottomSheetState
@@ -58,7 +57,7 @@ fun BottomDrawer(
                             Row(
                                 modifier = modifier
                                     .size(30.dp, 4.dp)
-                                    .clip(CircleShape)
+                                    .clip(RoundedCornerShape(8.dp))
                                     .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
                                     .zIndex(1f)
                             ) {}

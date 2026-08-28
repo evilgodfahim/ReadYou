@@ -100,16 +100,6 @@ fun Content(
 
     val summarySection =
         @Composable {
-            Column(modifier = Modifier.then(maxWidthModifier).padding(horizontal = 4.dp)) {
-                AiSummaryCard(
-                    summary = aiSummary.orEmpty(),
-                    isLoading = isAiSummaryLoading,
-                    error = aiSummaryError,
-                    isExpanded = isAiSummaryExpanded,
-                    onToggleExpanded = onAiSummaryToggleExpand,
-                    onVisibilityChanged = onAiSummaryVisibilityChanged,
-                )
-            }
         }
 
     if (isLoading) {
@@ -134,7 +124,6 @@ fun Content(
                             Spacer(modifier = Modifier.height(64.dp))
                             // padding
                             headline()
-                            summarySection()
                             Spacer(modifier = Modifier.height(16.dp))
 
                             RYWebView(
@@ -178,7 +167,7 @@ fun Content(
                             headline()
                         }
 
-                        item(key = AI_SUMMARY_NATIVE_ITEM_KEY) { summarySection() }
+                        item(key = AI_SUMMARY_NATIVE_ITEM_KEY) { }
 
                         item(key = "reading_ai_summary_spacing") {
                             Spacer(modifier = Modifier.height(16.dp))

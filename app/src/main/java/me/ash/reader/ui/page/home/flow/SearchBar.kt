@@ -1,8 +1,8 @@
 package me.ash.reader.ui.page.home.flow
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -48,7 +48,7 @@ fun SearchBar(
             .padding(vertical = 12.dp)
             .height(56.dp)
             .fillMaxWidth(),
-        shape = CircleShape,
+        shape = RoundedCornerShape(8.dp),
         tonalElevation = ElevationTokens.Level2.dp
     ) {
         Row(

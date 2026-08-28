@@ -720,7 +720,7 @@ constructor(
     ): List<Deferred<List<Article>>> {
         if (itemIds.isEmpty()) return emptyList()
         val currentDate = Date()
-        val semaphore = Semaphore(8)
+        val semaphore = Semaphore(32)
         return itemIds.chunked(100).mapIndexed { index, chunkedIds ->
             scope.async(ioDispatcher) {
                 semaphore.withPermit {

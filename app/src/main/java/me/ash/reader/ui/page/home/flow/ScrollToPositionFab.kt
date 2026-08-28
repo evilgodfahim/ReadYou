@@ -1,11 +1,11 @@
 package me.ash.reader.ui.page.home.flow
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
@@ -40,7 +40,7 @@ fun ScrollToLastReadFab(visible: Boolean, modifier: Modifier = Modifier, onClick
     ) {
         FloatingActionButton(
             onClick = onClick,
-            shape = CircleShape,
+            shape = RoundedCornerShape(8.dp),
             elevation = FloatingActionButtonDefaults.loweredElevation(),
             containerColor = MaterialTheme.colorScheme.primaryFixedDim,
             contentColor = MaterialTheme.colorScheme.onPrimaryFixedVariant
@@ -70,7 +70,7 @@ fun ScrollToTopFab(visible: Boolean, modifier: Modifier = Modifier, onClick: () 
     ) {
         FloatingActionButton(
             onClick = onClick,
-            shape = CircleShape,
+            shape = RoundedCornerShape(8.dp),
             elevation = FloatingActionButtonDefaults.loweredElevation(),
             containerColor = MaterialTheme.colorScheme.primaryFixedDim,
             contentColor = MaterialTheme.colorScheme.onPrimaryFixedVariant

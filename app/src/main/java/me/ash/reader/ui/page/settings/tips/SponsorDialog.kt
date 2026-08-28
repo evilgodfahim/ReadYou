@@ -1,4 +1,5 @@
 package me.ash.reader.ui.page.settings.tips
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -10,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -111,7 +111,7 @@ private fun SponsorItem(
             modifier = Modifier
                 .size(64.dp)
                 .aspectRatio(1f)
-                .clip(CircleShape),
+                .clip(RoundedCornerShape(8.dp)),
             contentScale = ContentScale.Crop,
         )
         Column(

@@ -19,6 +19,7 @@
  */
 
 package me.ash.reader.ui.component.reader
+import androidx.compose.foundation.shape.RoundedCornerShape
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -27,8 +28,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -515,7 +514,7 @@ private fun TextComposer.appendTextChildren(
                                                                 )
                                                                 .background(
                                                                     Color.Black.copy(alpha = .3f),
-                                                                    shape = CircleShape,
+                                                                    shape = RoundedCornerShape(8.dp),
                                                                 ),
                                                         contentAlignment = Alignment.Center,
                                                     ) {
@@ -726,7 +725,7 @@ private fun TextComposer.appendTextChildren(
                                                             )
                                                             .background(
                                                                 Color.Black.copy(alpha = .3f),
-                                                                shape = CircleShape,
+                                                                shape = RoundedCornerShape(8.dp),
                                                             ),
                                                     contentAlignment = Alignment.Center,
                                                 ) {
