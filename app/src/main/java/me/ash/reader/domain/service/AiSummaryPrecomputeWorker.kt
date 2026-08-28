@@ -138,7 +138,7 @@ constructor(
                 aiSummaryRepository.summarizeArticle(
                     baseUrl = settings.aiBaseUrl.value,
                     apiKey = settings.aiApiKey.randomValue,
-                    model = settings.aiModel.value.ifEmpty { "gpt-3.5-turbo" },
+                    model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
                     prompt = resolveAiSummarizationPrompt(settings.aiSummarizationPrompt.value),
                     articleTitle = articleWithFeed.article.title,
                     feedName = articleWithFeed.feed.name,

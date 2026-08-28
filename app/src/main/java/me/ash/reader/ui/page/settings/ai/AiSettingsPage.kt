@@ -88,6 +88,11 @@ import me.ash.reader.ui.ext.put
 import me.ash.reader.ui.ext.showToast
 import me.ash.reader.ui.theme.palette.onLight
 
+import kotlinx.coroutines.flow.first
+import me.ash.reader.infrastructure.preference.AiProviderCredentials
+import me.ash.reader.infrastructure.preference.readActiveProviderId
+import me.ash.reader.infrastructure.preference.readAiProviderCredentialsMap
+
 data class ProviderOption(
     val id: String,
     val title: String,
@@ -151,7 +156,7 @@ fun AiSettingsPage(
         }
 
     var selectedProvider by
-        remember(aiBaseUrl.value, allProviders) {
+        remember(allProviders) {
             mutableStateOf(
                 allProviders.firstOrNull {
                     AiBaseUrlPreference.normalize(it.defaultBaseUrl) ==
@@ -164,17 +169,64 @@ fun AiSettingsPage(
     var apiKeyInput by remember { mutableStateOf(aiApiKey.value) }
     var modelInput by remember { mutableStateOf(aiModel.value) }
     var apiKeyVisible by remember { mutableStateOf(false) }
+    var providerCredentialsMap by remember { mutableStateOf<Map<String, AiProviderCredentials>>(emptyMap()) }
 
-    LaunchedEffect(aiApiKey.value) {
-        if (apiKeyInput.isEmpty() && aiApiKey.value.isNotEmpty()) {
-            apiKeyInput = aiApiKey.value
+    LaunchedEffect(Unit) {
+        val prefs = context.dataStore.data.first()
+        val savedMap = prefs.readAiProviderCredentialsMap().toMutableMap()
+        val activeId = prefs.readActiveProviderId()
+
+        val currentProvider = allProviders.firstOrNull { it.id == activeId }
+            ?: allProviders.firstOrNull {
+                AiBaseUrlPreference.normalize(it.defaultBaseUrl) == AiBaseUrlPreference.normalize(aiBaseUrl.value)
+            } ?: allProviders.first()
+
+        if (savedMap.isEmpty() && (aiApiKey.value.isNotEmpty() || aiModel.value.isNotEmpty())) {
+            savedMap[currentProvider.id] = AiProviderCredentials(
+                providerId = currentProvider.id,
+                apiKey = aiApiKey.value,
+                model = aiModel.value,
+                baseUrl = currentProvider.defaultBaseUrl,
+            )
         }
+
+        providerCredentialsMap = savedMap
+        selectedProvider = currentProvider
+        val currentCreds = savedMap[currentProvider.id]
+        apiKeyInput = currentCreds?.apiKey ?: aiApiKey.value
+        modelInput = currentCreds?.model ?: aiModel.value.ifEmpty { currentProvider.defaultModel }
     }
 
-    LaunchedEffect(aiModel.value) {
-        if (modelInput.isEmpty() && aiModel.value.isNotEmpty()) {
-            modelInput = aiModel.value
-        }
+    fun selectProvider(newProvider: ProviderOption) {
+        if (newProvider.id == selectedProvider.id) return
+
+        val updatedMap = providerCredentialsMap.toMutableMap()
+        updatedMap[selectedProvider.id] = AiProviderCredentials(
+            providerId = selectedProvider.id,
+            apiKey = apiKeyInput.trim(),
+            model = modelInput.trim().ifEmpty { selectedProvider.defaultModel },
+            baseUrl = selectedProvider.defaultBaseUrl,
+        )
+
+        val newCreds = updatedMap[newProvider.id]
+        val newKey = newCreds?.apiKey ?: ""
+        val newModel = newCreds?.model ?: newProvider.defaultModel
+
+        selectedProvider = newProvider
+        apiKeyInput = newKey
+        modelInput = newModel
+        providerCredentialsMap = updatedMap
+
+        val normalizedUrl = AiBaseUrlPreference.normalize(newProvider.defaultBaseUrl)
+        aiSettingsViewModel.persistAiConfiguration(
+            context = context.applicationContext,
+            providerId = newProvider.id,
+            apiKey = newKey,
+            model = newModel,
+            baseUrl = normalizedUrl,
+            providerTitle = newProvider.title,
+            existingCredentialsMap = updatedMap,
+        )
     }
 
     fun saveCurrentConfiguration(
@@ -186,12 +238,23 @@ fun AiSettingsPage(
         val trimmedModel = model.trim().ifEmpty { provider.defaultModel }
         val normalizedUrl = AiBaseUrlPreference.normalize(provider.defaultBaseUrl)
 
+        val updatedMap = providerCredentialsMap.toMutableMap()
+        updatedMap[provider.id] = AiProviderCredentials(
+            providerId = provider.id,
+            apiKey = trimmedKey,
+            model = trimmedModel,
+            baseUrl = normalizedUrl,
+        )
+        providerCredentialsMap = updatedMap
+
         aiSettingsViewModel.persistAiConfiguration(
             context = context.applicationContext,
+            providerId = provider.id,
             apiKey = trimmedKey,
             model = trimmedModel,
             baseUrl = normalizedUrl,
             providerTitle = provider.title,
+            existingCredentialsMap = updatedMap,
         )
     }
 
@@ -440,12 +503,8 @@ fun AiSettingsPage(
                                         )
                                     },
                                     onClick = {
-                                        selectedProvider = provider
+                                        selectProvider(provider)
                                         providerDropdownExpanded = false
-                                        if (modelInput.isBlank() || allProviders.any { it.defaultModel == modelInput }) {
-                                            modelInput = provider.defaultModel
-                                        }
-                                        saveCurrentConfiguration(model = modelInput, provider = provider)
                                     },
                                     trailingIcon =
                                         if (provider.isCustom) {
@@ -492,6 +551,9 @@ fun AiSettingsPage(
                             saveCurrentConfiguration(key = it)
                         },
                         label = { Text("API Key(s)") },
+                        supportingText = {
+                            Text("Saved separately for ${selectedProvider.title}. Separate multiple keys with commas for random key rotation.")
+                        },
                         visualTransformation =
                             if (apiKeyVisible) VisualTransformation.None
                             else PasswordVisualTransformation(),
@@ -539,8 +601,11 @@ fun AiSettingsPage(
                             modelInput = it
                             saveCurrentConfiguration(model = it)
                         },
-                        label = { Text("Model Name") },
-                        placeholder = { Text(selectedProvider.defaultModel) },
+                        label = { Text("Model Name(s)") },
+                        placeholder = { Text("e.g. ${selectedProvider.defaultModel}") },
+                        supportingText = {
+                            Text("Separate multiple model names with commas to pick a random model at each summary click.")
+                        },
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         trailingIcon = {

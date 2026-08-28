@@ -75,7 +75,7 @@ class CommuteBriefQueueBuilder @Inject constructor(
                         targetDurationMinutes = targetDurationMinutes,
                         baseUrl = settings.aiBaseUrl.value,
                         apiKey = settings.aiApiKey.randomValue,
-                        model = settings.aiModel.value.ifEmpty { "gpt-3.5-turbo" },
+                        model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
                         prompt = resolveAiCommuteBriefRecommendationPrompt(
                             settings.aiCommuteBriefRecommendationPrompt.value,
                         ),

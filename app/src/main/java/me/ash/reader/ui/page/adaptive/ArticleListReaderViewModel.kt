@@ -737,7 +737,7 @@ constructor(
                 val result = aiSummaryRepository.summarizeArticle(
                     baseUrl = settings.aiBaseUrl.value,
                     apiKey = settings.aiApiKey.randomValue,
-                    model = settings.aiModel.value.ifEmpty { "gpt-3.5-turbo" },
+                    model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
                     prompt = resolveAiSummarizationPrompt(settings.aiSummarizationPrompt.value),
                     articleTitle = targetArticle.title,
                     feedName = feedTitle,
@@ -898,7 +898,7 @@ constructor(
                         aiTranslationRepository.translateBlocks(
                             baseUrl = settings.aiBaseUrl.value,
                             apiKey = settings.aiApiKey.randomValue,
-                            model = settings.aiModel.value.ifEmpty { "gpt-3.5-turbo" },
+                            model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
                             prompt = resolveAiTranslationPrompt(settings.aiTranslationPrompt.value),
                             sourceBlocks = nextBatch,
                         )
@@ -1304,7 +1304,7 @@ constructor(
                     aiChatRepository.requestReply(
                         baseUrl = settings.aiBaseUrl.value,
                         apiKey = settings.aiApiKey.randomValue,
-                        model = settings.aiModel.value.ifEmpty { "gpt-3.5-turbo" },
+                        model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
                         prompt = resolveAiChatPrompt(settings.aiChatPrompt.value),
                         articleTitle = articleWithFeed.article.title,
                         feedName = articleWithFeed.feed.name,
@@ -1589,7 +1589,7 @@ constructor(
                 aiTranslationRepository.translateBlocks(
                     baseUrl = settings.aiBaseUrl.value,
                     apiKey = settings.aiApiKey.randomValue,
-                    model = settings.aiModel.value.ifEmpty { "gpt-3.5-turbo" },
+                    model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
                     prompt = resolveAiTranslationPrompt(settings.aiTranslationPrompt.value),
                     sourceBlocks = nextBatch,
                 )

@@ -18,6 +18,7 @@ import me.ash.reader.infrastructure.preference.AiConfigPresetState
 import me.ash.reader.infrastructure.preference.buildAiConfigPreset
 import me.ash.reader.infrastructure.preference.readAiConfigPresetState
 import me.ash.reader.infrastructure.preference.readLegacyAiConfigPresetState
+import me.ash.reader.infrastructure.preference.saveAiProviderCredentialsMap
 import me.ash.reader.infrastructure.preference.updateAiConfigPresetState
 import me.ash.reader.ui.ext.dataStore
 import me.ash.reader.ui.ext.put
@@ -99,18 +100,34 @@ class AiSettingsViewModel @Inject constructor(
 
     fun persistAiConfiguration(
         context: Context,
+        providerId: String = "default_preset",
         apiKey: String,
         model: String,
         baseUrl: String,
         providerTitle: String,
+        existingCredentialsMap: Map<String, me.ash.reader.infrastructure.preference.AiProviderCredentials> = emptyMap(),
     ) {
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.NonCancellable) {
             context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiApiKey, apiKey)
             context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiModel, model)
             context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiBaseUrl, baseUrl)
 
+            if (existingCredentialsMap.isNotEmpty()) {
+                val updatedMap = existingCredentialsMap.toMutableMap()
+                updatedMap[providerId] = me.ash.reader.infrastructure.preference.AiProviderCredentials(
+                    providerId = providerId,
+                    apiKey = apiKey,
+                    model = model,
+                    baseUrl = baseUrl,
+                )
+                context.saveAiProviderCredentialsMap(
+                    map = updatedMap,
+                    activeProviderId = providerId,
+                )
+            }
+
             context.updateAiConfigPresetState { currentState ->
-                val currentPresetId = currentState.currentPresetId.ifBlank { "default_preset" }
+                val currentPresetId = providerId.ifBlank { currentState.currentPresetId.ifBlank { "default_preset" } }
                 val exists = currentState.presets.any { it.id == currentPresetId }
                 val updatedPresets = if (exists) {
                     currentState.presets.map { preset ->

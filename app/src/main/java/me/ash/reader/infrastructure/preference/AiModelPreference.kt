@@ -17,6 +17,13 @@ val LocalAiModel = compositionLocalOf { AiModelPreference.default }
 
 data class AiModelPreference(val value: String) : Preference() {
 
+    val randomValue: String
+        get() = value.split(",")
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .randomOrNull(kotlin.random.Random(java.security.SecureRandom().nextLong()))
+            ?: value.trim()
+
     override fun put(context: Context, scope: CoroutineScope) {
         scope.launch {
             context.dataStore.put(aiModel, value)
