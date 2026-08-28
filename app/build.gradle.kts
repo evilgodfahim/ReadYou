@@ -187,4 +187,18 @@ dependencies {
     testImplementation(libs.mockito.kotlin)
 }
 
+tasks.matching { it.name == "packageDebug" || it.name == "assembleDebug" }.configureEach {
+    val buildDir = layout.buildDirectory
+    doLast {
+        val apkDir = buildDir.dir("outputs/apk").get().asFile
+        val targetApk = buildDir.file("outputs/apk/debug/app-debug.apk").get().asFile
+        targetApk.parentFile.mkdirs()
+        val candidateFiles = apkDir.walkTopDown().filter {
+            it.isFile && it.name.endsWith(".apk") && it.name.contains("debug") && it.absolutePath != targetApk.absolutePath
+        }.toList()
+        val arm64Apk = candidateFiles.find { it.name.contains("arm64-v8a") } ?: candidateFiles.firstOrNull()
+        arm64Apk?.copyTo(targetApk, overwrite = true)
+    }
+}
+
 

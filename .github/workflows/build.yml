@@ -16,6 +16,9 @@ jobs:
         run: echo "Build SHA ${{ github.sha }}"
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-disabled: false
+          gradle-home-cache-cleanup: true
       - name: Make gradlew executable
         run: chmod +x gradlew
       - name: Setup Keystore
