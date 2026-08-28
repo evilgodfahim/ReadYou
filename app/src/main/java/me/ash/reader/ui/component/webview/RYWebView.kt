@@ -104,7 +104,7 @@ fun RYWebView(
     val fontPath =
         if (readingFonts is ReadingFontsPreference.External)
             ExternalFonts.FontType.ReadingFont.toPath(context)
-        else if (readingFonts is ReadingFontsPreference.GoogleSans || readingFonts is ReadingFontsPreference.Serif) {
+        else if (readingFonts is ReadingFontsPreference.GoogleSans || readingFonts is ReadingFontsPreference.Serif || readingFonts is ReadingFontsPreference.System) {
             "/android_res/font/playfair_display.ttf"
         } else null
 

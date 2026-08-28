@@ -14,6 +14,7 @@ import me.ash.reader.ui.ext.dataStore
 import me.ash.reader.ui.ext.put
 import me.ash.reader.ui.ext.restart
 import me.ash.reader.ui.theme.GoogleSansFontFamily
+import me.ash.reader.ui.theme.getGlobalFontFamily
 
 val LocalReadingFonts =
     compositionLocalOf<ReadingFontsPreference> { ReadingFontsPreference.default }
@@ -45,7 +46,7 @@ sealed class ReadingFontsPreference(val value: Int) : Preference() {
     fun toDesc(context: Context): String =
         when (this) {
             GoogleSans -> "Playfair & Nikosh"
-            System -> context.getString(R.string.system_default)
+            System -> "Playfair Display & Nikosh (Default)"
             Serif -> "Playfair Display & Nikosh (Serif)"
             SansSerif -> "Sans-Serif"
             Monospace -> "Monospace"
@@ -55,9 +56,9 @@ sealed class ReadingFontsPreference(val value: Int) : Preference() {
 
     fun asFontFamily(context: Context): FontFamily =
         when (this) {
-            GoogleSans -> GoogleSansFontFamily
-            System -> GoogleSansFontFamily
-            Serif -> GoogleSansFontFamily
+            GoogleSans -> getGlobalFontFamily(context)
+            System -> getGlobalFontFamily(context)
+            Serif -> getGlobalFontFamily(context)
             SansSerif -> FontFamily.SansSerif
             Monospace -> FontFamily.Monospace
             Cursive -> FontFamily.Cursive
@@ -68,7 +69,7 @@ sealed class ReadingFontsPreference(val value: Int) : Preference() {
 
     companion object {
 
-        val default = Serif
+        val default: ReadingFontsPreference get() = Serif
         val values = listOf(GoogleSans, System, Serif, SansSerif, Monospace, Cursive, External)
 
         fun fromPreferences(preferences: Preferences): ReadingFontsPreference =

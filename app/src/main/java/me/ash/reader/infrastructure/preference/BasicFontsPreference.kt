@@ -19,6 +19,7 @@ import me.ash.reader.ui.ext.restart
 import me.ash.reader.ui.theme.GoogleSansFontFamily
 import me.ash.reader.ui.theme.SystemTypography
 import me.ash.reader.ui.theme.applyFontFamily
+import me.ash.reader.ui.theme.getGlobalFontFamily
 
 val LocalBasicFonts = compositionLocalOf<BasicFontsPreference> { BasicFontsPreference.default }
 
@@ -40,7 +41,7 @@ sealed class BasicFontsPreference(val value: Int) : Preference() {
 
     fun toDesc(context: Context): String =
         when (this) {
-            System -> context.getString(R.string.system_default)
+            System -> "Playfair Display & Nikosh (Default)"
             GoogleSans -> "Playfair & Nikosh"
             External -> context.getString(R.string.external_fonts)
             Serif -> "Playfair Display & Nikosh"
@@ -48,23 +49,23 @@ sealed class BasicFontsPreference(val value: Int) : Preference() {
 
     fun asFontFamily(context: Context): FontFamily =
         when (this) {
-            System -> FontFamily.Default
-            GoogleSans -> GoogleSansFontFamily
+            System -> getGlobalFontFamily(context)
+            GoogleSans -> getGlobalFontFamily(context)
             External -> ExternalFonts.loadBasicTypography(context).bodyMedium.fontFamily ?: FontFamily.Default
-            Serif -> GoogleSansFontFamily
+            Serif -> getGlobalFontFamily(context)
         }
 
     fun asTypography(context: Context): Typography =
         when (this) {
-            System -> SystemTypography.applyFontFamily(FontFamily.SansSerif)
-            GoogleSans -> SystemTypography.applyFontFamily(GoogleSansFontFamily)
+            System -> SystemTypography.applyFontFamily(getGlobalFontFamily(context))
+            GoogleSans -> SystemTypography.applyFontFamily(getGlobalFontFamily(context))
             External -> ExternalFonts.loadBasicTypography(context)
-            Serif -> SystemTypography.applyFontFamily(GoogleSansFontFamily)
+            Serif -> SystemTypography.applyFontFamily(getGlobalFontFamily(context))
         }
 
     companion object {
 
-        val default = System
+        val default: BasicFontsPreference get() = Serif
         val values = listOf(Serif, GoogleSans, System, External)
 
         fun fromPreferences(preferences: Preferences): BasicFontsPreference =

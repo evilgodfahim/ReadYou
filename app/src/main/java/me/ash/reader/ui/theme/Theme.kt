@@ -6,6 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -59,20 +60,24 @@ fun AppTheme(
                 themeIndex
             }]
 
+    val context = LocalContext.current
+    val currentFont = LocalBasicFonts.current.asFontFamily(context)
+    val typography =
+        LocalBasicFonts.current
+            .asTypography(context)
+            .applyTextDirection()
+
     ProvideZcamViewingConditions {
         CompositionLocalProvider(
             LocalTonalPalettes provides tonalPalettes.apply { Preparing() },
-            LocalTextStyle provides LocalTextStyle.current.merge(fontFamily = FontFamily.SansSerif).applyTextDirection(),
+            LocalTextStyle provides LocalTextStyle.current.merge(fontFamily = currentFont).applyTextDirection(),
         ) {
             val lightColors = dynamicLightColorScheme()
             val darkColors = dynamicDarkColorScheme()
             MaterialTheme(
                 motionScheme = MotionScheme.expressive(),
                 colorScheme = if (useDarkTheme) darkColors else lightColors,
-                typography =
-                    LocalBasicFonts.current
-                        .asTypography(LocalContext.current)
-                        .applyTextDirection(),
+                typography = typography,
                 shapes = Shapes,
                 content = content,
             )

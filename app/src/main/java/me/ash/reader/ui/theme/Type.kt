@@ -2,6 +2,9 @@
 
 package me.ash.reader.ui.theme
 
+import android.content.Context
+import android.graphics.Typeface
+import android.os.Build
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -18,24 +21,25 @@ import me.ash.reader.R
 
 // TODO: Rename file to Typography.kt and add @Stable
 
-private val LabelSmallEmphasizedFont = FontFamily.SansSerif
+private val LabelSmallEmphasizedFont: FontFamily get() = GlobalFontFamily
 private val LabelSmallEmphasizedLineHeight = 16.0.sp
 private val LabelSmallEmphasizedSize = 11.sp
 private val LabelSmallEmphasizedTracking = 0.5.sp
 private val LabelSmallEmphasizedWeight = FontWeight.Bold
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-val SystemTypography =
-    Typography(
-        bodySmallEmphasized =
-            TextStyle.Default.copy(
-                fontFamily = LabelSmallEmphasizedFont,
-                fontSize = LabelSmallEmphasizedSize,
-                fontWeight = LabelSmallEmphasizedWeight,
-                letterSpacing = LabelSmallEmphasizedTracking,
-                lineHeight = LabelSmallEmphasizedLineHeight,
-            )
-    )
+val SystemTypography
+    get() =
+        Typography(
+            bodySmallEmphasized =
+                TextStyle.Default.copy(
+                    fontFamily = LabelSmallEmphasizedFont,
+                    fontSize = LabelSmallEmphasizedSize,
+                    fontWeight = LabelSmallEmphasizedWeight,
+                    letterSpacing = LabelSmallEmphasizedTracking,
+                    lineHeight = LabelSmallEmphasizedLineHeight,
+                )
+        )
 
 internal fun TextStyle.applyTextDirection(textDirection: TextDirection = TextDirection.Content) =
     this.copy(textDirection = textDirection)
@@ -118,7 +122,7 @@ private val NikoshBoldItalic =
         style = FontStyle.Italic,
     )
 
-val GlobalFontFamily =
+val GlobalFallbackFontFamily =
     FontFamily(
         PlayfairRegular,
         PlayfairRegularItalic,
@@ -134,7 +138,44 @@ val GlobalFontFamily =
         NikoshBoldItalic,
     )
 
-val GoogleSansFontFamily = FontFamily.SansSerif
+@Volatile
+private var cachedGlobalFontFamily: FontFamily? = null
+
+fun getGlobalFontFamily(context: Context): FontFamily {
+    cachedGlobalFontFamily?.let { return it }
+    val family =
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val playfairFont =
+                    android.graphics.fonts.Font.Builder(context.resources, R.font.playfair_display).build()
+                val playfairFamily =
+                    android.graphics.fonts.FontFamily.Builder(playfairFont).build()
+
+                val nikoshFont =
+                    android.graphics.fonts.Font.Builder(context.resources, R.font.nikosh).build()
+                val nikoshFamily =
+                    android.graphics.fonts.FontFamily.Builder(nikoshFont).build()
+
+                val customTypeface =
+                    Typeface.CustomFallbackBuilder(playfairFamily)
+                        .addCustomFallback(nikoshFamily)
+                        .build()
+                FontFamily(customTypeface)
+            } else {
+                GlobalFallbackFontFamily
+            }
+        } catch (e: Throwable) {
+            GlobalFallbackFontFamily
+        }
+    cachedGlobalFontFamily = family
+    return family
+}
+
+val GlobalFontFamily: FontFamily
+    get() = cachedGlobalFontFamily ?: GlobalFallbackFontFamily
+
+val GoogleSansFontFamily: FontFamily
+    get() = GlobalFontFamily
 
 /**
  * Resolve the text to Rtl if the text requires BiDirectional

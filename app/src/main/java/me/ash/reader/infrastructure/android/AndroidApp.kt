@@ -97,6 +97,7 @@ class AndroidApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         CrashHandler(this)
+        me.ash.reader.ui.theme.getGlobalFontFamily(this)
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
