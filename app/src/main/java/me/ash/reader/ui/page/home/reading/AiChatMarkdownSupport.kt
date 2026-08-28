@@ -5,6 +5,7 @@ import org.jsoup.nodes.Entities
 
 private val codeFenceRegex = Regex("""^```([a-zA-Z0-9_+-]+)?\s*$""")
 private val headingRegex = Regex("""^(#{1,6})\s+(.*)$""")
+private val boldHeaderRegex = Regex("""^\*\*(.*?)\*\*:?\s*$""")
 private val unorderedListRegex = Regex("""^(\s*)([-*+])\s+(.*)$""")
 private val orderedListRegex = Regex("""^(\s*)(\d+)\.\s+(.*)$""")
 private val taskListRegex = Regex("""^\[( |x|X)]\s+(.*)$""")
@@ -104,6 +105,19 @@ fun parseAiChatMarkdownBlocks(markdown: String): List<AiChatMarkdownBlock> {
                 )
             index += 1
             continue
+        }
+
+        boldHeaderRegex.matchEntire(line)?.let { match ->
+            val content = match.groupValues[1].trim()
+            if (content.isNotBlank()) {
+                blocks +=
+                    AiChatMarkdownBlock.Heading(
+                        level = 3,
+                        content = content,
+                    )
+                index += 1
+                continue
+            }
         }
 
         if (

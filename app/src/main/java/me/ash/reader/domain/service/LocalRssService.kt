@@ -70,7 +70,7 @@ constructor(
             require(currentAccount.type.id == AccountType.Local.id) {
                 "Account type is invalid"
             }
-            val semaphore = Semaphore(128)
+            val semaphore = Semaphore(256)
 
             val feedsToSync =
                 when {
@@ -79,36 +79,48 @@ constructor(
                     else -> feedDao.queryAll(accountId)
                 }
 
-            feedsToSync
-                .mapIndexed { _, currentFeed ->
-                    async(Dispatchers.IO) {
-                        semaphore.withPermit {
-                            val archivedArticles =
-                                feedDao
-                                    .queryArchivedArticles(currentFeed.id)
-                                    .map { it.link }
-                                    .toSet()
-                            val fetchedFeed = syncFeed(currentFeed, preDate)
-                            val fetchedArticles =
-                                fetchedFeed.articles.filterNot {
-                                    archivedArticles.contains(it.link)
-                                }
-
-                            val newArticles =
-                                articleDao.insertListIfNotExist(
-                                    articles = fetchedArticles,
-                                    feed = currentFeed,
-                                )
-                            pendingAiSummaryEnqueuer.enqueue(accountId, newArticles)
-                            if (currentFeed.isNotification && newArticles.isNotEmpty()) {
-                                notificationHelper.notify(
-                                    fetchedFeed.copy(articles = newArticles, feed = currentFeed)
-                                )
+            // Phase 1: Pure parallel HTTP fetching & XML parsing (no DB contention)
+            val fetchedResults =
+                feedsToSync
+                    .map { currentFeed ->
+                        async(Dispatchers.IO) {
+                            semaphore.withPermit {
+                                currentFeed to syncFeed(currentFeed, preDate)
                             }
                         }
                     }
+                    .awaitAll()
+
+            // Phase 2: Save to Database
+            for ((currentFeed, fetchedFeed) in fetchedResults) {
+                if (fetchedFeed.articles.isEmpty()) continue
+                val archivedArticles =
+                    feedDao
+                        .queryArchivedArticles(currentFeed.id)
+                        .map { it.link }
+                        .toSet()
+
+                val fetchedArticles =
+                    fetchedFeed.articles.filterNot {
+                        archivedArticles.contains(it.link)
+                    }
+
+                if (fetchedArticles.isEmpty()) continue
+
+                val newArticles =
+                    articleDao.insertListIfNotExist(
+                        articles = fetchedArticles,
+                        feed = currentFeed,
+                    )
+                if (newArticles.isNotEmpty()) {
+                    pendingAiSummaryEnqueuer.enqueue(accountId, newArticles)
+                    if (currentFeed.isNotification) {
+                        notificationHelper.notify(
+                            fetchedFeed.copy(articles = newArticles, feed = currentFeed)
+                        )
+                    }
                 }
-                .awaitAll()
+            }
 
             Timber.tag("RlOG").i("onCompletion: ${System.currentTimeMillis() - preTime}")
             accountService.update(currentAccount.copy(updateAt = Date()))

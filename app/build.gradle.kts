@@ -34,8 +34,14 @@ android {
         room { schemaDirectory("$projectDir/schemas") }
 
         ksp { arg("room.incremental", "true") }
-        ndk {
-            abiFilters.add("arm64-v8a")
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            isUniversalApk = false
         }
     }
 
@@ -180,3 +186,5 @@ dependencies {
     testImplementation(libs.mockito.junit.jupiter)
     testImplementation(libs.mockito.kotlin)
 }
+
+

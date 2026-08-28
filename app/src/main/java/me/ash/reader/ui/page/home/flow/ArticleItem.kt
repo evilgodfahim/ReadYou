@@ -158,10 +158,10 @@ fun ArticleItem(
     Column(
         modifier =
             modifier
-                .padding(horizontal = 4.dp, vertical = 1.dp)
+                .padding(horizontal = 4.dp, vertical = 4.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-                .padding(horizontal = 8.dp, vertical = 6.dp)
+                .padding(horizontal = 10.dp, vertical = 8.dp)
                 .alpha(
                     when (articleListReadIndicator) {
                         FlowArticleReadIndicatorPreference.None -> 1f
@@ -193,7 +193,7 @@ fun ArticleItem(
                             ),
                     text = feedName,
                     color = MaterialTheme.colorScheme.tertiary,
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium.merge(fontSize = 13.sp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -210,7 +210,7 @@ fun ArticleItem(
                             modifier = Modifier,
                             text = timeString ?: "",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelMedium.merge(fontSize = 13.sp),
                         )
                     }
                 }
@@ -224,7 +224,7 @@ fun ArticleItem(
                             modifier = Modifier.weight(1f),
                             text = timeString ?: "",
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelMedium.merge(fontSize = 13.sp),
                         )
                         // Starred
                         if (isStarred) {
@@ -239,7 +239,7 @@ fun ArticleItem(
         }
 
         // Bottom
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
             // Feed icon
             if (articleListFeedIcon.value) {
                 FeedIcon(feedName = feedName, iconUrl = feedIconUrl)
@@ -262,7 +262,7 @@ fun ArticleItem(
                         style =
                             MaterialTheme.typography.titleMedium
                                 .applyTextDirection(title.requiresBidi())
-                                .merge(lineHeight = 22.sp),
+                                .merge(fontSize = 17.5.sp, lineHeight = 24.sp),
                         maxLines = Int.MAX_VALUE,
                         overflow = TextOverflow.Clip,
                         modifier = Modifier.weight(1f),
@@ -282,7 +282,7 @@ fun ArticleItem(
                         shortDescription.isNotBlank()
                 ) {
                     Text(
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier.padding(top = 6.dp),
                         text = shortDescription,
                         color =
                             if (isShortDescriptionTranslated) {
@@ -291,9 +291,9 @@ fun ArticleItem(
                                 MaterialTheme.colorScheme.onSurfaceVariant
                             },
                         style =
-                            MaterialTheme.typography.bodySmall.applyTextDirection(
-                                shortDescription.requiresBidi()
-                            ),
+                            MaterialTheme.typography.bodySmall
+                                .applyTextDirection(shortDescription.requiresBidi())
+                                .merge(fontSize = 13.5.sp, lineHeight = 19.sp),
                         maxLines =
                             when (articleListDesc) {
                                 FlowArticleListDescPreference.LONG -> 4

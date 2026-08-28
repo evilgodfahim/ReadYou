@@ -190,12 +190,15 @@ fun AiSummaryMarkdownContent(
             when (block) {
                 is AiChatMarkdownBlock.Heading -> {
                     Text(
-                        text = buildMarkdownAnnotatedString(block.content),
+                        text = buildMarkdownAnnotatedString(
+                            text = block.content,
+                            boldColor = MaterialTheme.colorScheme.primary,
+                        ),
                         style = baseH3Style.copy(
-                            fontSize = (LocalReadingTextFontSize.current * 1.12f).sp,
+                            fontSize = (LocalReadingTextFontSize.current * 1.18f).sp,
                             fontWeight = FontWeight.Bold,
                         ),
-                        color = MaterialTheme.colorScheme.onSurface,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
 
@@ -290,6 +293,7 @@ fun AiSummaryMarkdownContent(
 private fun buildMarkdownAnnotatedString(
     text: String,
     highlightBg: Color = Color.Unspecified,
+    boldColor: Color = Color.Unspecified,
 ): AnnotatedString {
     return buildAnnotatedString {
         var index = 0
@@ -299,7 +303,7 @@ private fun buildMarkdownAnnotatedString(
                     val delim = text.substring(index, index + 3)
                     val end = text.indexOf(delim, index + 3)
                     if (end != -1) {
-                        pushStyle(SpanStyle(fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic))
+                        pushStyle(SpanStyle(fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic, color = boldColor))
                         append(text.substring(index + 3, end))
                         pop()
                         index = end + 3
@@ -311,7 +315,7 @@ private fun buildMarkdownAnnotatedString(
                     val delim = text.substring(index, index + 2)
                     val end = text.indexOf(delim, index + 2)
                     if (end != -1) {
-                        pushStyle(SpanStyle(fontWeight = FontWeight.Bold))
+                        pushStyle(SpanStyle(fontWeight = FontWeight.Bold, color = boldColor))
                         append(text.substring(index + 2, end))
                         pop()
                         index = end + 2

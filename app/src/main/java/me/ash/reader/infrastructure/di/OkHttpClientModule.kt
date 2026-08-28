@@ -60,15 +60,15 @@ object OkHttpClientModule {
         @ApplicationContext context: Context,
     ): OkHttpClient {
         val dispatcher = okhttp3.Dispatcher().apply {
-            maxRequests = 128
-            maxRequestsPerHost = 32
+            maxRequests = 256
+            maxRequestsPerHost = 64
         }
-        val connectionPool = okhttp3.ConnectionPool(64, 5, TimeUnit.MINUTES)
+        val connectionPool = okhttp3.ConnectionPool(128, 5, TimeUnit.MINUTES)
         return cachingHttpClient(
             context = context,
             cacheDirectory = context.cacheDir.resolve("http"),
-            connectTimeoutSecs = 6L,
-            readTimeoutSecs = 8L,
+            connectTimeoutSecs = 4L,
+            readTimeoutSecs = 6L,
         ).newBuilder()
             .dispatcher(dispatcher)
             .connectionPool(connectionPool)
