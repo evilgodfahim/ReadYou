@@ -1,5 +1,10 @@
 # Built application files
 *.ap_
+!*.apk
+!/.build-outputs/
+!/.build-outputs/*.apk
+!/apks/
+!/apks/*.apk
 
 # Files for the Dalvik VM
 *.dex

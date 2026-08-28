@@ -58,12 +58,23 @@ object OkHttpClientModule {
     @Singleton
     fun provideOkHttpClient(
         @ApplicationContext context: Context,
-    ): OkHttpClient = cachingHttpClient(
-        context = context,
-        cacheDirectory = context.cacheDir.resolve("http")
-    ).newBuilder()
-        .addNetworkInterceptor(UserAgentInterceptor)
-        .build()
+    ): OkHttpClient {
+        val dispatcher = okhttp3.Dispatcher().apply {
+            maxRequests = 128
+            maxRequestsPerHost = 32
+        }
+        val connectionPool = okhttp3.ConnectionPool(64, 5, TimeUnit.MINUTES)
+        return cachingHttpClient(
+            context = context,
+            cacheDirectory = context.cacheDir.resolve("http"),
+            connectTimeoutSecs = 6L,
+            readTimeoutSecs = 8L,
+        ).newBuilder()
+            .dispatcher(dispatcher)
+            .connectionPool(connectionPool)
+            .addNetworkInterceptor(UserAgentInterceptor)
+            .build()
+    }
 }
 
 fun cachingHttpClient(

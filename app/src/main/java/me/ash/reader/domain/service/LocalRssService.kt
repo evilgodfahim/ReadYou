@@ -7,9 +7,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Date
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -68,7 +70,7 @@ constructor(
             require(currentAccount.type.id == AccountType.Local.id) {
                 "Account type is invalid"
             }
-            val semaphore = Semaphore(64)
+            val semaphore = Semaphore(128)
 
             val feedsToSync =
                 when {
@@ -119,9 +121,13 @@ constructor(
     private suspend fun syncFeed(feed: Feed, preDate: Date = Date()): FeedWithArticle {
         val articles = rssHelper.queryRssXml(feed, "", preDate)
         if (feed.icon == null) {
-            val iconLink = rssHelper.queryRssIconLink(feed.url)
-            if (iconLink != null) {
-                rssHelper.saveRssIcon(feedDao, feed, iconLink)
+            CoroutineScope(Dispatchers.IO).launch {
+                runCatching {
+                    val iconLink = rssHelper.queryRssIconLink(feed.url)
+                    if (iconLink != null) {
+                        rssHelper.saveRssIcon(feedDao, feed, iconLink)
+                    }
+                }
             }
         }
         return FeedWithArticle(
