@@ -13,14 +13,17 @@ fun String.parseDynamicColor(tonalPalettes: TonalPalettes, isDarkTheme: Boolean)
         Log.i("RLog", "parseDynamicColor: $value")
         if (value.startsWith("#")) return@replace it.value
         try {
-            val (scheme, tone) = value.split("(?<=\\d)(?=\\D)|(?=\\d)(?<=\\D)".toRegex())
+            val parts = value.split("(?<=\\d)(?=\\D)|(?=\\d)(?<=\\D)".toRegex())
+            if (parts.size < 2) return@replace it.value
+            val scheme = parts[0]
+            val tone = parts[1].toIntOrNull() ?: return@replace it.value
             val argb = when (scheme) {
-                "p" -> tonalPalettes.primary[tone.toInt().autoToDarkTone(isDarkTheme)]
-                "s" -> tonalPalettes.secondary[tone.toInt().autoToDarkTone(isDarkTheme)]
-                "t" -> tonalPalettes.tertiary[tone.toInt().autoToDarkTone(isDarkTheme)]
-                "n" -> tonalPalettes.neutral[tone.toInt().autoToDarkTone(isDarkTheme)]
-                "nv" -> tonalPalettes.neutralVariant[tone.toInt().autoToDarkTone(isDarkTheme)]
-                "e" -> tonalPalettes.error[tone.toInt().autoToDarkTone(isDarkTheme)]
+                "p" -> tonalPalettes.primary[tone.autoToDarkTone(isDarkTheme)]
+                "s" -> tonalPalettes.secondary[tone.autoToDarkTone(isDarkTheme)]
+                "t" -> tonalPalettes.tertiary[tone.autoToDarkTone(isDarkTheme)]
+                "n" -> tonalPalettes.neutral[tone.autoToDarkTone(isDarkTheme)]
+                "nv" -> tonalPalettes.neutralVariant[tone.autoToDarkTone(isDarkTheme)]
+                "e" -> tonalPalettes.error[tone.autoToDarkTone(isDarkTheme)]
                 else -> Color.Transparent
             }?.toArgb() ?: 0xFFFFFF
             "fill=\"${String.format("#%06X", 0xFFFFFF and argb)}\""
