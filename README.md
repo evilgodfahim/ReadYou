@@ -22,8 +22,9 @@
 </div>
 
 <div align="center">
-    <h1>Read You</h1>
+    <h1>Read You (AI Enhanced Fork)</h1>
     <p>An Android RSS reader presented in <a target="_blank" href="https://m3.material.io/">Material You</a> style.</p>
+    <p><strong>Note:</strong> This is a custom fork of the original ReadYou app. It features an improved <code>SyncManager</code> for more reliable background syncing and significantly increased API timeouts (up to 90 seconds) for AI-powered summarization and translation. This ensures that large articles do not fail prematurely when using long-running language models.</p>
     <p>English&nbsp;&nbsp;|&nbsp;&nbsp;
     <a target="_blank" href="https://github.com/ReadYouApp/ReadYou/blob/main/README-de.md">Deutsch</a>&nbsp;&nbsp;|&nbsp;&nbsp;
     <a target="_blank" href="https://github.com/ReadYouApp/ReadYou/blob/main/README-zh-CN.md">简体中文</a>&nbsp;&nbsp;|&nbsp;&nbsp;
