@@ -63,6 +63,7 @@ fun Content(
     onImageClick: ((imgUrl: String, altText: String) -> Unit)? = null,
     onAiSummaryToggleExpand: () -> Unit = {},
     onAiSummaryVisibilityChanged: (Boolean) -> Unit = {},
+    onRegenerateAiSummary: () -> Unit = {},
     onWebViewReady: (WebView) -> Unit = {},
     onDoubleTap: (() -> Unit)? = null,
 ) {
@@ -111,6 +112,7 @@ fun Content(
                         isExpanded = isAiSummaryExpanded,
                         onToggleExpanded = onAiSummaryToggleExpand,
                         onVisibilityChanged = onAiSummaryVisibilityChanged,
+                        onRegenerate = onRegenerateAiSummary,
                     )
                 }
             }

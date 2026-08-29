@@ -13,6 +13,8 @@ import me.ash.reader.domain.service.AccountService
 import me.ash.reader.infrastructure.android.htmlSegmentCharCounts
 import me.ash.reader.infrastructure.net.ApiResult
 import me.ash.reader.infrastructure.preference.SettingsProvider
+import me.ash.reader.infrastructure.preference.readActiveProviderId
+import me.ash.reader.infrastructure.preference.readAiProviderCredentialsMap
 import me.ash.reader.ui.page.home.reading.resolveAiCommuteBriefRecommendationPrompt
 
 private const val DEFAULT_CANDIDATE_LIMIT = 200
@@ -68,18 +70,26 @@ class CommuteBriefQueueBuilder @Inject constructor(
                 TtsCommuteQueueGenerationMode.NewestFirst ->
                     CommuteBriefSelection(candidates.selectForTargetDuration(targetDurationMs))
 
-                TtsCommuteQueueGenerationMode.AiRecommended ->
+                TtsCommuteQueueGenerationMode.AiRecommended -> {
+                    val activeProviderCreds = settingsProvider.preferences.readActiveProviderId().let { activeId ->
+                        settingsProvider.preferences.readAiProviderCredentialsMap()[activeId]
+                    }
+                    val effectiveBaseUrl = activeProviderCreds?.baseUrl?.takeIf { it.isNotBlank() } ?: settings.aiBaseUrl.value
+                    val effectiveApiKey = activeProviderCreds?.randomApiKey?.takeIf { it.isNotBlank() } ?: settings.aiApiKey.randomValue
+                    val effectiveModel = activeProviderCreds?.randomModel?.takeIf { it.isNotBlank() } ?: settings.aiModel.randomValue
+
                     recommendWithAi(
                         candidates = candidates,
                         targetDurationMs = targetDurationMs,
                         targetDurationMinutes = targetDurationMinutes,
-                        baseUrl = settings.aiBaseUrl.value,
-                        apiKey = settings.aiApiKey.randomValue,
-                        model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
+                        baseUrl = effectiveBaseUrl,
+                        apiKey = effectiveApiKey,
+                        model = effectiveModel,
                         prompt = resolveAiCommuteBriefRecommendationPrompt(
                             settings.aiCommuteBriefRecommendationPrompt.value,
                         ),
                     )
+                }
             }
 
         val totalDurationMs = selection.candidates.sumOf { it.durationMs }

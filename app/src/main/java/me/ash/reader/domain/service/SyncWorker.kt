@@ -47,17 +47,6 @@ constructor(
                     "feedId" to feedId,
                     "groupId" to groupId,
                 )
-            val readerWork =
-                OneTimeWorkRequestBuilder<ReaderWorker>()
-                    .addTag(READER_TAG)
-                    .addTag(ONETIME_WORK_TAG)
-                    .setInputData(workerInputData)
-                    .setBackoffCriteria(
-                        backoffPolicy = BackoffPolicy.EXPONENTIAL,
-                        backoffDelay = 30,
-                        timeUnit = TimeUnit.SECONDS,
-                    )
-                    .build()
             val aiSummaryWork =
                 OneTimeWorkRequestBuilder<AiSummaryPrecomputeWorker>()
                     .addTag(ONETIME_WORK_TAG)
@@ -74,9 +63,8 @@ constructor(
                 .beginUniqueWork(
                     uniqueWorkName = postSyncWorkName(accountId),
                     existingWorkPolicy = ExistingWorkPolicy.KEEP,
-                    readerWork,
+                    listOf(aiSummaryWork, widgetWork),
                 )
-                .then(listOf(aiSummaryWork, widgetWork))
                 .enqueue()
         }
 

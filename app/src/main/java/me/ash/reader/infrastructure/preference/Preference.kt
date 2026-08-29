@@ -112,19 +112,37 @@ fun Preferences.toSettings(): Settings {
         aiConfigPresets = presetState?.presets.orEmpty(),
         aiCurrentPresetId = presetState?.currentPresetId.orEmpty(),
         aiBaseUrl = run {
-            val direct = (DataStoreKey.keys[DataStoreKey.aiBaseUrl]?.key as? Preferences.Key<String>)?.let { this[it] }
-            if (!direct.isNullOrBlank()) AiBaseUrlPreference(direct)
-            else currentPreset?.let { AiBaseUrlPreference(it.baseUrl) } ?: AiBaseUrlPreference.default
+            val providerCredsMap = readAiProviderCredentialsMap()
+            val activeId = readActiveProviderId()
+            val activeCred = providerCredsMap[activeId] ?: currentPreset?.let {
+                AiProviderCredentials(it.id, it.apiKey, it.model, it.baseUrl)
+            }
+            val url = activeCred?.baseUrl?.takeIf { it.isNotBlank() }
+                ?: (DataStoreKey.keys[DataStoreKey.aiBaseUrl]?.key as? Preferences.Key<String>)?.let { this[it] }
+                ?: currentPreset?.baseUrl
+            if (!url.isNullOrBlank()) AiBaseUrlPreference(url) else AiBaseUrlPreference.default
         },
         aiApiKey = run {
-            val direct = (DataStoreKey.keys[DataStoreKey.aiApiKey]?.key as? Preferences.Key<String>)?.let { this[it] }
-            if (!direct.isNullOrBlank()) AiApiKeyPreference(direct)
-            else currentPreset?.let { AiApiKeyPreference(it.apiKey) } ?: AiApiKeyPreference.default
+            val providerCredsMap = readAiProviderCredentialsMap()
+            val activeId = readActiveProviderId()
+            val activeCred = providerCredsMap[activeId] ?: currentPreset?.let {
+                AiProviderCredentials(it.id, it.apiKey, it.model, it.baseUrl)
+            }
+            val key = activeCred?.apiKey?.takeIf { it.isNotBlank() }
+                ?: (DataStoreKey.keys[DataStoreKey.aiApiKey]?.key as? Preferences.Key<String>)?.let { this[it] }
+                ?: currentPreset?.apiKey
+            if (!key.isNullOrBlank()) AiApiKeyPreference(key) else AiApiKeyPreference.default
         },
         aiModel = run {
-            val direct = (DataStoreKey.keys[DataStoreKey.aiModel]?.key as? Preferences.Key<String>)?.let { this[it] }
-            if (!direct.isNullOrBlank()) AiModelPreference(direct)
-            else currentPreset?.let { AiModelPreference(it.model) } ?: AiModelPreference.default
+            val providerCredsMap = readAiProviderCredentialsMap()
+            val activeId = readActiveProviderId()
+            val activeCred = providerCredsMap[activeId] ?: currentPreset?.let {
+                AiProviderCredentials(it.id, it.apiKey, it.model, it.baseUrl)
+            }
+            val model = activeCred?.model?.takeIf { it.isNotBlank() }
+                ?: (DataStoreKey.keys[DataStoreKey.aiModel]?.key as? Preferences.Key<String>)?.let { this[it] }
+                ?: currentPreset?.model
+            if (!model.isNullOrBlank()) AiModelPreference(model) else AiModelPreference.default
         },
         aiSummarizationPrompt = AiSummarizationPromptPreference.fromPreferences(this),
         aiCommuteBriefRecommendationPrompt = AiCommuteBriefRecommendationPromptPreference.fromPreferences(this),

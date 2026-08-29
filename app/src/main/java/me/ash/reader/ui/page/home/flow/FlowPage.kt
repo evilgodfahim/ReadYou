@@ -58,6 +58,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -865,6 +866,11 @@ fun FlowPage(
                         ),
             )
         }
+        me.ash.reader.ui.component.base.SyncProgressBanner(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 72.dp)
+        )
         if (isDateJumpSheetOpen) {
             ModalBottomSheet(
                 onDismissRequest = { isDateJumpSheetOpen = false },

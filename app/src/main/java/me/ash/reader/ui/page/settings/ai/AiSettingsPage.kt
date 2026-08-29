@@ -24,6 +24,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Save
@@ -90,8 +91,14 @@ import me.ash.reader.ui.theme.palette.onLight
 
 import kotlinx.coroutines.flow.first
 import me.ash.reader.infrastructure.preference.AiProviderCredentials
+import me.ash.reader.infrastructure.preference.AiProviderCredentialsCache
+import me.ash.reader.infrastructure.preference.AiSummaryPromptPreset
+import me.ash.reader.infrastructure.preference.AiSummaryPromptState
 import me.ash.reader.infrastructure.preference.readActiveProviderId
 import me.ash.reader.infrastructure.preference.readAiProviderCredentialsMap
+import me.ash.reader.infrastructure.preference.readAiSummaryPromptState
+import me.ash.reader.infrastructure.preference.saveAiProviderCredentialsMap
+import me.ash.reader.infrastructure.preference.saveAiSummaryPromptState
 
 data class ProviderOption(
     val id: String,
@@ -107,7 +114,7 @@ val BuiltInProviders =
             "gemini",
             "Gemini",
             "https://generativelanguage.googleapis.com/v1beta/openai/",
-            "gemini-2.5-flash",
+            "gemini-2.0-flash",
         ),
         ProviderOption(
             "mistral",
@@ -155,23 +162,34 @@ fun AiSettingsPage(
                 }
         }
 
+    val cachedMap = AiProviderCredentialsCache.getCachedMap()
+    val cachedActiveId = AiProviderCredentialsCache.getCachedActiveProviderId()
+
     var selectedProvider by
         remember(allProviders) {
             mutableStateOf(
-                allProviders.firstOrNull {
-                    AiBaseUrlPreference.normalize(it.defaultBaseUrl) ==
-                        AiBaseUrlPreference.normalize(aiBaseUrl.value)
-                } ?: allProviders.first()
+                allProviders.firstOrNull { it.id == cachedActiveId }
+                    ?: allProviders.firstOrNull {
+                        AiBaseUrlPreference.normalize(it.defaultBaseUrl) ==
+                            AiBaseUrlPreference.normalize(aiBaseUrl.value)
+                    } ?: allProviders.first()
             )
         }
 
     var providerDropdownExpanded by remember { mutableStateOf(false) }
-    var apiKeyInput by remember { mutableStateOf(aiApiKey.value) }
-    var modelInput by remember { mutableStateOf(aiModel.value) }
+    var providerCredentialsMap by remember { mutableStateOf(cachedMap) }
+    val initialCreds = cachedMap[selectedProvider.id]
+    var apiKeyInput by remember { mutableStateOf(initialCreds?.apiKey ?: aiApiKey.value) }
+    var modelInput by remember {
+        mutableStateOf(
+            initialCreds?.model?.ifEmpty { selectedProvider.defaultModel }
+                ?: aiModel.value.ifEmpty { selectedProvider.defaultModel }
+        )
+    }
     var apiKeyVisible by remember { mutableStateOf(false) }
-    var providerCredentialsMap by remember { mutableStateOf<Map<String, AiProviderCredentials>>(emptyMap()) }
 
     LaunchedEffect(Unit) {
+        AiProviderCredentialsCache.ensureLoaded(context)
         val prefs = context.dataStore.data.first()
         val savedMap = prefs.readAiProviderCredentialsMap().toMutableMap()
         val activeId = prefs.readActiveProviderId()
@@ -188,19 +206,21 @@ fun AiSettingsPage(
                 model = aiModel.value,
                 baseUrl = currentProvider.defaultBaseUrl,
             )
+            context.saveAiProviderCredentialsMap(savedMap, currentProvider.id)
         }
 
-        providerCredentialsMap = savedMap
+        val merged = (savedMap + providerCredentialsMap + AiProviderCredentialsCache.getCachedMap()).toMutableMap()
+        providerCredentialsMap = merged
         selectedProvider = currentProvider
-        val currentCreds = savedMap[currentProvider.id]
+        val currentCreds = merged[currentProvider.id]
         apiKeyInput = currentCreds?.apiKey ?: aiApiKey.value
-        modelInput = currentCreds?.model ?: aiModel.value.ifEmpty { currentProvider.defaultModel }
+        modelInput = currentCreds?.model?.ifEmpty { currentProvider.defaultModel } ?: aiModel.value.ifEmpty { currentProvider.defaultModel }
     }
 
     fun selectProvider(newProvider: ProviderOption) {
         if (newProvider.id == selectedProvider.id) return
 
-        val updatedMap = providerCredentialsMap.toMutableMap()
+        val updatedMap = (providerCredentialsMap + AiProviderCredentialsCache.getCachedMap()).toMutableMap()
         updatedMap[selectedProvider.id] = AiProviderCredentials(
             providerId = selectedProvider.id,
             apiKey = apiKeyInput.trim(),
@@ -210,7 +230,7 @@ fun AiSettingsPage(
 
         val newCreds = updatedMap[newProvider.id]
         val newKey = newCreds?.apiKey ?: ""
-        val newModel = newCreds?.model ?: newProvider.defaultModel
+        val newModel = newCreds?.model?.ifEmpty { newProvider.defaultModel } ?: newProvider.defaultModel
 
         selectedProvider = newProvider
         apiKeyInput = newKey
@@ -238,7 +258,7 @@ fun AiSettingsPage(
         val trimmedModel = model.trim().ifEmpty { provider.defaultModel }
         val normalizedUrl = AiBaseUrlPreference.normalize(provider.defaultBaseUrl)
 
-        val updatedMap = providerCredentialsMap.toMutableMap()
+        val updatedMap = (providerCredentialsMap + AiProviderCredentialsCache.getCachedMap()).toMutableMap()
         updatedMap[provider.id] = AiProviderCredentials(
             providerId = provider.id,
             apiKey = trimmedKey,
@@ -381,11 +401,7 @@ fun AiSettingsPage(
                                     newCustom.defaultModel,
                                     true,
                                 )
-                            selectedProvider = newOption
-                            if (modelInput.isBlank()) {
-                                modelInput = newOption.defaultModel
-                            }
-                            saveCurrentConfiguration(provider = newOption)
+                            selectProvider(newOption)
                             showAddCustomProviderDialog = false
                         }
                     }
@@ -518,11 +534,7 @@ fun AiSettingsPage(
                                                         CustomAiProvidersPreference.State(newList)
                                                             .put(context, scope)
                                                         if (selectedProvider.id == provider.id) {
-                                                            selectedProvider =
-                                                                BuiltInProviders.first()
-                                                            saveCurrentConfiguration(
-                                                                provider = selectedProvider
-                                                            )
+                                                            selectProvider(BuiltInProviders.first())
                                                         }
                                                         providerDropdownExpanded = false
                                                     }
@@ -671,22 +683,249 @@ fun AiSettingsPage(
                 }
 
                 item {
-                    Subtitle(text = "AI Prompts Management")
+                    var summaryPromptState by remember { mutableStateOf(context.readAiSummaryPromptState()) }
+                    var showAddPromptDialog by remember { mutableStateOf(false) }
+                    var editingPromptPreset by remember { mutableStateOf<AiSummaryPromptPreset?>(null) }
+                    var promptNameInput by remember { mutableStateOf("") }
+                    var promptContentInput by remember { mutableStateOf("") }
 
-                    ActionItemCard(
-                        title = "AI Summary",
-                        subtitle =
-                            aiSummarizationPrompt.value.ifBlank {
-                                "Default structured summary prompt"
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Subtitle(
+                            modifier = Modifier.weight(1f),
+                            text = "AI Summary Prompts",
+                        )
+                        TextButton(
+                            onClick = {
+                                promptNameInput = ""
+                                promptContentInput = ""
+                                showAddPromptDialog = true
+                            }
+                        ) {
+                            Icon(
+                                Icons.Rounded.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Add Prompt")
+                        }
+                    }
+
+                    summaryPromptState.prompts.forEach { preset ->
+                        val isActive = preset.id == summaryPromptState.activePromptId
+
+                        Card(
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                                    .clickable {
+                                        val newState = summaryPromptState.copy(activePromptId = preset.id)
+                                        summaryPromptState = newState
+                                        scope.launch { context.saveAiSummaryPromptState(newState) }
+                                        context.showToast("${preset.name} set as active prompt")
+                                    },
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isActive) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                                else MaterialTheme.colorScheme.surfaceContainerHigh
+                            ),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(14.dp).fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    imageVector = if (isActive) Icons.Rounded.CheckCircle else Icons.Rounded.Star,
+                                    contentDescription = null,
+                                    tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(
+                                            preset.name,
+                                            fontWeight = FontWeight.SemiBold,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.onSurface,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                        if (isActive) {
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                            Surface(
+                                                color = MaterialTheme.colorScheme.primary,
+                                                shape = RoundedCornerShape(4.dp),
+                                            ) {
+                                                Text(
+                                                    "Active",
+                                                    fontSize = 10.sp,
+                                                    color = MaterialTheme.colorScheme.onPrimary,
+                                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Text(
+                                        preset.prompt,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                                Row {
+                                    IconButton(
+                                        onClick = {
+                                            editingPromptPreset = preset
+                                            promptNameInput = preset.name
+                                            promptContentInput = preset.prompt
+                                        }
+                                    ) {
+                                        Icon(
+                                            Icons.Rounded.Edit,
+                                            contentDescription = "Edit Prompt",
+                                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            modifier = Modifier.size(18.dp),
+                                        )
+                                    }
+                                    if (summaryPromptState.prompts.size > 1) {
+                                        IconButton(
+                                            onClick = {
+                                                val newPrompts = summaryPromptState.prompts.filter { it.id != preset.id }
+                                                val newActiveId = if (summaryPromptState.activePromptId == preset.id) {
+                                                    newPrompts.first().id
+                                                } else summaryPromptState.activePromptId
+                                                val newState = summaryPromptState.copy(
+                                                    prompts = newPrompts,
+                                                    activePromptId = newActiveId,
+                                                )
+                                                summaryPromptState = newState
+                                                scope.launch { context.saveAiSummaryPromptState(newState) }
+                                            }
+                                        ) {
+                                            Icon(
+                                                Icons.Rounded.Delete,
+                                                contentDescription = "Delete Prompt",
+                                                tint = MaterialTheme.colorScheme.error,
+                                                modifier = Modifier.size(18.dp),
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (showAddPromptDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showAddPromptDialog = false },
+                            title = { Text("Add AI Summary Prompt") },
+                            text = {
+                                Column {
+                                    OutlinedTextField(
+                                        value = promptNameInput,
+                                        onValueChange = { promptNameInput = it },
+                                        label = { Text("Prompt Name (e.g. Executive Summary)") },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    )
+                                    OutlinedTextField(
+                                        value = promptContentInput,
+                                        onValueChange = { promptContentInput = it },
+                                        label = { Text("Prompt Text") },
+                                        minLines = 3,
+                                        maxLines = 6,
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    )
+                                }
                             },
-                        isDefault =
-                            aiSummarizationPrompt.value ==
-                                AiSummarizationPromptPreference.default.value,
-                        onEdit = {
-                            editPromptValue = aiSummarizationPrompt.value
-                            editPromptType = "summary"
-                        },
-                    )
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        if (promptNameInput.isNotBlank() && promptContentInput.isNotBlank()) {
+                                            val newPreset = AiSummaryPromptPreset(
+                                                id = UUID.randomUUID().toString(),
+                                                name = promptNameInput.trim(),
+                                                prompt = promptContentInput.trim(),
+                                            )
+                                            val newState = summaryPromptState.copy(
+                                                prompts = summaryPromptState.prompts + newPreset,
+                                                activePromptId = newPreset.id,
+                                            )
+                                            summaryPromptState = newState
+                                            scope.launch { context.saveAiSummaryPromptState(newState) }
+                                            showAddPromptDialog = false
+                                        }
+                                    }
+                                ) {
+                                    Text("Add")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showAddPromptDialog = false }) { Text("Cancel") }
+                            },
+                        )
+                    }
+
+                    if (editingPromptPreset != null) {
+                        AlertDialog(
+                            onDismissRequest = { editingPromptPreset = null },
+                            title = { Text("Edit AI Summary Prompt") },
+                            text = {
+                                Column {
+                                    OutlinedTextField(
+                                        value = promptNameInput,
+                                        onValueChange = { promptNameInput = it },
+                                        label = { Text("Prompt Name") },
+                                        singleLine = true,
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    )
+                                    OutlinedTextField(
+                                        value = promptContentInput,
+                                        onValueChange = { promptContentInput = it },
+                                        label = { Text("Prompt Text") },
+                                        minLines = 3,
+                                        maxLines = 6,
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                    )
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        val target = editingPromptPreset ?: return@TextButton
+                                        if (promptNameInput.isNotBlank() && promptContentInput.isNotBlank()) {
+                                            val updatedPrompts = summaryPromptState.prompts.map { preset ->
+                                                if (preset.id == target.id) {
+                                                    preset.copy(
+                                                        name = promptNameInput.trim(),
+                                                        prompt = promptContentInput.trim(),
+                                                    )
+                                                } else preset
+                                            }
+                                            val newState = summaryPromptState.copy(prompts = updatedPrompts)
+                                            summaryPromptState = newState
+                                            scope.launch { context.saveAiSummaryPromptState(newState) }
+                                            editingPromptPreset = null
+                                        }
+                                    }
+                                ) {
+                                    Text("Save")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { editingPromptPreset = null }) { Text("Cancel") }
+                            },
+                        )
+                    }
+
+                    Subtitle(text = "Article Chat / Aggregation Prompt")
 
                     ActionItemCard(
                         title = "Article Chat / Aggregation",

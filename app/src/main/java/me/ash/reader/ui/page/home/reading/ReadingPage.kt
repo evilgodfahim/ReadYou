@@ -580,6 +580,9 @@ fun ReadingPage(
                                                 viewModel.updateAiSummaryCardVisible(it)
                                             },
                                             onWebViewReady = { currentWebView = it },
+                                            onRegenerateAiSummary = {
+                                                viewModel.requestAiSummary(force = true)
+                                            },
                                             onDoubleTap = {
                                                 hapticFeedback.performHapticFeedback(
                                                     HapticFeedbackType.GestureThresholdActivate

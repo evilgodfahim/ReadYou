@@ -17,6 +17,7 @@ import me.ash.reader.infrastructure.preference.AiConfigPreset
 import me.ash.reader.infrastructure.preference.AiConfigPresetState
 import me.ash.reader.infrastructure.preference.buildAiConfigPreset
 import me.ash.reader.infrastructure.preference.readAiConfigPresetState
+import me.ash.reader.infrastructure.preference.readAiProviderCredentialsMap
 import me.ash.reader.infrastructure.preference.readLegacyAiConfigPresetState
 import me.ash.reader.infrastructure.preference.saveAiProviderCredentialsMap
 import me.ash.reader.infrastructure.preference.updateAiConfigPresetState
@@ -51,6 +52,11 @@ class AiSettingsViewModel @Inject constructor(
             context.updateAiConfigPresetState { state ->
                 state.copy(currentPresetId = presetId)
             }
+            me.ash.reader.infrastructure.preference.AiProviderCredentialsCache.saveAndMerge(
+                context = context,
+                incomingMap = emptyMap(),
+                activeProviderId = presetId,
+            )
             onComplete()
         }
     }
@@ -76,6 +82,23 @@ class AiSettingsViewModel @Inject constructor(
                     presets = updatedPresets,
                     currentPresetId = if (setAsCurrent || state.currentPresetId.isBlank()) preset.id else state.currentPresetId,
                 )
+            }
+            me.ash.reader.infrastructure.preference.AiProviderCredentialsCache.saveAndMerge(
+                context = context,
+                incomingMap = mapOf(
+                    preset.id to me.ash.reader.infrastructure.preference.AiProviderCredentials(
+                        providerId = preset.id,
+                        apiKey = preset.apiKey,
+                        model = preset.model,
+                        baseUrl = preset.baseUrl,
+                    )
+                ),
+                activeProviderId = if (setAsCurrent) preset.id else "",
+            )
+            if (setAsCurrent) {
+                context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiApiKey, preset.apiKey)
+                context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiModel, preset.model)
+                context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiBaseUrl, preset.baseUrl)
             }
             onComplete()
         }
@@ -108,23 +131,35 @@ class AiSettingsViewModel @Inject constructor(
         existingCredentialsMap: Map<String, me.ash.reader.infrastructure.preference.AiProviderCredentials> = emptyMap(),
     ) {
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.NonCancellable) {
-            context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiApiKey, apiKey)
-            context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiModel, model)
-            context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiBaseUrl, baseUrl)
+            me.ash.reader.infrastructure.preference.AiProviderCredentialsCache.ensureLoaded(context)
 
-            if (existingCredentialsMap.isNotEmpty()) {
-                val updatedMap = existingCredentialsMap.toMutableMap()
-                updatedMap[providerId] = me.ash.reader.infrastructure.preference.AiProviderCredentials(
-                    providerId = providerId,
-                    apiKey = apiKey,
-                    model = model,
-                    baseUrl = baseUrl,
-                )
-                context.saveAiProviderCredentialsMap(
-                    map = updatedMap,
-                    activeProviderId = providerId,
-                )
-            }
+            val incoming = existingCredentialsMap.toMutableMap()
+            val existingTarget = me.ash.reader.infrastructure.preference.AiProviderCredentialsCache.getCredential(providerId)
+            val finalApiKey = if (apiKey.isNotBlank()) apiKey else existingTarget?.apiKey.orEmpty()
+            val finalModel = if (model.isNotBlank()) model else existingTarget?.model.orEmpty()
+            val finalBaseUrl = if (baseUrl.isNotBlank()) baseUrl else existingTarget?.baseUrl.orEmpty()
+
+            incoming[providerId] = me.ash.reader.infrastructure.preference.AiProviderCredentials(
+                providerId = providerId,
+                apiKey = finalApiKey,
+                model = finalModel,
+                baseUrl = finalBaseUrl,
+            )
+
+            val updatedMap = me.ash.reader.infrastructure.preference.AiProviderCredentialsCache.saveAndMerge(
+                context = context,
+                incomingMap = incoming,
+                activeProviderId = providerId,
+            )
+
+            val currentCred = updatedMap[providerId]
+            val effectiveApiKey = currentCred?.apiKey ?: finalApiKey
+            val effectiveModel = currentCred?.model ?: finalModel
+            val effectiveBaseUrl = currentCred?.baseUrl ?: finalBaseUrl
+
+            context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiApiKey, effectiveApiKey)
+            context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiModel, effectiveModel)
+            context.dataStore.put(me.ash.reader.ui.ext.DataStoreKey.aiBaseUrl, effectiveBaseUrl)
 
             context.updateAiConfigPresetState { currentState ->
                 val currentPresetId = providerId.ifBlank { currentState.currentPresetId.ifBlank { "default_preset" } }
@@ -133,9 +168,9 @@ class AiSettingsViewModel @Inject constructor(
                     currentState.presets.map { preset ->
                         if (preset.id == currentPresetId) {
                             preset.copy(
-                                baseUrl = baseUrl,
-                                apiKey = apiKey,
-                                model = model,
+                                baseUrl = effectiveBaseUrl,
+                                apiKey = effectiveApiKey,
+                                model = effectiveModel,
                                 provider = providerTitle,
                             )
                         } else preset
@@ -144,9 +179,9 @@ class AiSettingsViewModel @Inject constructor(
                     currentState.presets + AiConfigPreset(
                         id = currentPresetId,
                         name = providerTitle,
-                        baseUrl = baseUrl,
-                        apiKey = apiKey,
-                        model = model,
+                        baseUrl = effectiveBaseUrl,
+                        apiKey = effectiveApiKey,
+                        model = effectiveModel,
                         provider = providerTitle,
                     )
                 }

@@ -25,13 +25,16 @@ class AiChatRepository @Inject constructor() {
         model: String,
     ): ApiResult<Unit> {
         return try {
+            val effectiveBaseUrl = OpenAiApiService.normalizeBaseUrl(baseUrl)
+            val effectiveModel = OpenAiApiService.normalizeModel(model, effectiveBaseUrl)
+            val effectiveApiKey = apiKey.split(",").map { it.trim() }.filter { it.isNotBlank() }.randomOrNull() ?: apiKey.trim()
             val service = OpenAiApiService.getInstance(
-                baseUrl = baseUrl,
-                apiKey = apiKey,
+                baseUrl = effectiveBaseUrl,
+                apiKey = effectiveApiKey,
                 timeoutSeconds = AI_WEB_SEARCH_TEST_TIMEOUT_SECONDS,
                 callTimeoutSeconds = AI_WEB_SEARCH_TEST_TIMEOUT_SECONDS,
             )
-            val response = service.createRawResponse(buildWebSearchTestRequest(model))
+            val response = service.createRawResponse(buildWebSearchTestRequest(effectiveModel))
             if (response.isSuccessful && response.body() != null) {
                 val rawBody = response.body()!!.string()
                 val body = parseResponsesBody(rawBody)
@@ -118,15 +121,18 @@ class AiChatRepository @Inject constructor() {
         userQuestion: String,
     ): ApiResult<String> {
         return try {
+            val effectiveBaseUrl = OpenAiApiService.normalizeBaseUrl(baseUrl)
+            val effectiveModel = OpenAiApiService.normalizeModel(model, effectiveBaseUrl)
+            val effectiveApiKey = apiKey.split(",").map { it.trim() }.filter { it.isNotBlank() }.randomOrNull() ?: apiKey.trim()
             val service = OpenAiApiService.getInstance(
-                baseUrl = baseUrl,
-                apiKey = apiKey,
+                baseUrl = effectiveBaseUrl,
+                apiKey = effectiveApiKey,
                 timeoutSeconds = AI_CHAT_RESPONSES_TIMEOUT_SECONDS,
                 callTimeoutSeconds = AI_CHAT_RESPONSES_TIMEOUT_SECONDS,
             )
             val request =
                 buildResponsesRequest(
-                    model = model,
+                    model = effectiveModel,
                     prompt = prompt,
                     articleTitle = articleTitle,
                     feedName = feedName,
@@ -176,7 +182,10 @@ class AiChatRepository @Inject constructor() {
         userQuestion: String,
     ): ApiResult<String> {
         return try {
-            val service = OpenAiApiService.getInstance(baseUrl, apiKey)
+            val effectiveBaseUrl = OpenAiApiService.normalizeBaseUrl(baseUrl)
+            val effectiveModel = OpenAiApiService.normalizeModel(model, effectiveBaseUrl)
+            val effectiveApiKey = apiKey.split(",").map { it.trim() }.filter { it.isNotBlank() }.randomOrNull() ?: apiKey.trim()
+            val service = OpenAiApiService.getInstance(effectiveBaseUrl, effectiveApiKey)
             val messages =
                 buildRequestMessages(
                     prompt = prompt,
@@ -190,7 +199,7 @@ class AiChatRepository @Inject constructor() {
                     userQuestion = userQuestion,
                 )
             val request = ChatCompletionRequest(
-                model = model,
+                model = effectiveModel,
                 messages = messages,
                 temperature = 0.4,
                 maxTokens = 2000,

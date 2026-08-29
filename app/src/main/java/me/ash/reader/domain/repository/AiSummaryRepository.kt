@@ -26,14 +26,17 @@ class AiSummaryRepository @Inject constructor() {
         candidates: List<CommuteBriefRecommendationCandidate>,
     ): ApiResult<List<String>> {
         return try {
+            val effectiveBaseUrl = OpenAiApiService.normalizeBaseUrl(baseUrl)
+            val effectiveModel = OpenAiApiService.normalizeModel(model, effectiveBaseUrl)
+            val effectiveApiKey = apiKey.split(",").map { it.trim() }.filter { it.isNotBlank() }.randomOrNull() ?: apiKey.trim()
             val service = OpenAiApiService.getInstance(
-                baseUrl = baseUrl,
-                apiKey = apiKey,
+                baseUrl = effectiveBaseUrl,
+                apiKey = effectiveApiKey,
                 timeoutSeconds = COMMUTE_BRIEF_RECOMMENDATION_TIMEOUT_SECONDS,
                 callTimeoutSeconds = COMMUTE_BRIEF_RECOMMENDATION_TIMEOUT_SECONDS,
             )
             val request = ChatCompletionRequest(
-                model = model,
+                model = effectiveModel,
                 messages = buildCommuteBriefRecommendationMessages(
                     prompt = prompt,
                     targetDurationMinutes = targetDurationMinutes,
@@ -89,18 +92,21 @@ class AiSummaryRepository @Inject constructor() {
         model: String,
     ): ApiResult<Unit> {
         return try {
+            val effectiveBaseUrl = OpenAiApiService.normalizeBaseUrl(baseUrl)
+            val effectiveModel = OpenAiApiService.normalizeModel(model, effectiveBaseUrl)
+            val effectiveApiKey = apiKey.split(",").map { it.trim() }.filter { it.isNotBlank() }.randomOrNull() ?: apiKey.trim()
             val service = OpenAiApiService.getInstance(
-                baseUrl = baseUrl,
-                apiKey = apiKey,
+                baseUrl = effectiveBaseUrl,
+                apiKey = effectiveApiKey,
                 timeoutSeconds = AI_CONNECTION_TEST_TIMEOUT_SECONDS,
                 callTimeoutSeconds = AI_CONNECTION_TEST_TIMEOUT_SECONDS,
             )
             val request = ChatCompletionRequest(
-                model = model,
+                model = effectiveModel,
                 messages = listOf(ChatMessage(role = "user", content = "Reply with OK only.")),
                 temperature = 0.0,
                 maxTokens = 8,
-                thinking = buildConnectionTestThinkingConfig(baseUrl),
+                thinking = buildConnectionTestThinkingConfig(effectiveBaseUrl),
             )
             val response =
                 withTimeout(AI_CONNECTION_TEST_TIMEOUT_SECONDS * 1000L) {
@@ -133,7 +139,10 @@ class AiSummaryRepository @Inject constructor() {
         articleContent: String
     ): ApiResult<String> {
         return try {
-            val service = OpenAiApiService.getInstance(baseUrl, apiKey)
+            val effectiveBaseUrl = OpenAiApiService.normalizeBaseUrl(baseUrl)
+            val effectiveModel = OpenAiApiService.normalizeModel(model, effectiveBaseUrl)
+            val effectiveApiKey = apiKey.split(",").map { it.trim() }.filter { it.isNotBlank() }.randomOrNull() ?: apiKey.trim()
+            val service = OpenAiApiService.getInstance(effectiveBaseUrl, effectiveApiKey)
             val messages = buildSummaryMessages(
                 prompt = prompt,
                 articleTitle = articleTitle,
@@ -143,7 +152,7 @@ class AiSummaryRepository @Inject constructor() {
             )
 
             val request = ChatCompletionRequest(
-                model = model,
+                model = effectiveModel,
                 messages = messages,
                 temperature = 0.7,
                 maxTokens = 2500

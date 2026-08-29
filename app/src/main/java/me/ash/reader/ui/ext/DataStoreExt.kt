@@ -221,6 +221,8 @@ sealed interface PreferencesKey {
         const val aiTranslationPrompt = "aiTranslationPrompt"
         const val aiChatPrompt = "aiChatPrompt"
         const val customAiProviders = "custom_ai_providers"
+        const val aiProviderCredentialsMap = "ai_provider_credentials_map"
+        const val aiActiveProviderId = "ai_active_provider_id"
         const val aiBackgroundSummary = "aiBackgroundSummary"
         const val aiBackgroundSummaryLimit = "aiBackgroundSummaryLimit"
         const val aiBackgroundSummaryBackfillOnSync = "aiBackgroundSummaryBackfillOnSync"
@@ -318,6 +320,8 @@ sealed interface PreferencesKey {
                 StringKey(aiTranslationPrompt),
                 StringKey(aiChatPrompt),
                 StringKey(customAiProviders),
+                StringKey(aiProviderCredentialsMap),
+                StringKey(aiActiveProviderId),
                 BooleanKey(aiBackgroundSummary),
                 IntKey(aiBackgroundSummaryLimit),
                 BooleanKey(aiBackgroundSummaryBackfillOnSync),
@@ -428,6 +432,8 @@ data class DataStoreKey<T>(val key: Preferences.Key<T>, val type: Class<T>) {
         const val aiTranslationPrompt = "aiTranslationPrompt"
         const val aiChatPrompt = "aiChatPrompt"
         const val customAiProviders = "custom_ai_providers"
+        const val aiProviderCredentialsMap = "ai_provider_credentials_map"
+        const val aiActiveProviderId = "ai_active_provider_id"
         const val aiBackgroundSummary = "aiBackgroundSummary"
         const val aiBackgroundSummaryLimit = "aiBackgroundSummaryLimit"
         const val aiBackgroundSummaryBackfillOnSync = "aiBackgroundSummaryBackfillOnSync"
@@ -616,6 +622,8 @@ data class DataStoreKey<T>(val key: Preferences.Key<T>, val type: Class<T>) {
                 aiTranslationPrompt to DataStoreKey(stringPreferencesKey(aiTranslationPrompt), String::class.java),
                 aiChatPrompt to DataStoreKey(stringPreferencesKey(aiChatPrompt), String::class.java),
                 customAiProviders to DataStoreKey(stringPreferencesKey(customAiProviders), String::class.java),
+                aiProviderCredentialsMap to DataStoreKey(stringPreferencesKey(aiProviderCredentialsMap), String::class.java),
+                aiActiveProviderId to DataStoreKey(stringPreferencesKey(aiActiveProviderId), String::class.java),
                 aiBackgroundSummary to
                     DataStoreKey(
                         booleanPreferencesKey(aiBackgroundSummary),

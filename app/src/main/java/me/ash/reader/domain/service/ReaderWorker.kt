@@ -9,8 +9,6 @@ import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import me.ash.reader.infrastructure.rss.ReaderCacheHelper
 
@@ -26,24 +24,6 @@ constructor(
 ) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
-        val accountId = inputData.getInt(SyncWorker.INPUT_ACCOUNT_ID, -1)
-        require(accountId != -1)
-        val account = accountService.getAccountById(accountId) ?: return Result.failure()
-        val semaphore = Semaphore(16)
-
-        val deferredList =
-            withContext(Dispatchers.IO) {
-                val rssRepository = rssService.get(account.type.id)
-                val articleList = rssRepository.queryUnreadFullContentArticles(accountId)
-                articleList.map {
-                    async {
-                        semaphore.withPermit {
-                            cacheHelper.checkOrFetchFullContent(it, accountId = accountId)
-                        }
-                    }
-                }
-            }
-
-        return if (deferredList.awaitAll().any { !it }) Result.retry() else Result.success()
+        return Result.success()
     }
 }

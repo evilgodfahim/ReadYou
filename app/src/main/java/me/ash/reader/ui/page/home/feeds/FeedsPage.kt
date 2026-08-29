@@ -7,6 +7,7 @@ import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -180,7 +181,8 @@ fun FeedsPage(
     val feedDrawerState = rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden, skipHalfExpanded = true)
     BackHandler { context.findActivity()?.moveTaskToBack(false) }
 
-    RYScaffold(
+    Box(modifier = Modifier.fillMaxSize()) {
+        RYScaffold(
             topBarTonalElevation = topBarTonalElevation.value.dp,
             //        containerTonalElevation = groupListTonalElevation.value.dp,
             topBar = {
@@ -355,6 +357,13 @@ fun FeedsPage(
                 }
             },
         )
+
+        me.ash.reader.ui.component.base.SyncProgressBanner(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 72.dp)
+        )
+    }
 
     SubscribeDialog(subscribeViewModel = subscribeViewModel)
 

@@ -1,6 +1,7 @@
 package me.ash.reader.ui.page.home.reading
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -48,6 +49,27 @@ import me.ash.reader.infrastructure.preference.LocalReadingTextFontSize
 import me.ash.reader.ui.component.reader.bodyStyle
 import me.ash.reader.ui.component.reader.h3Style
 
+import androidx.compose.foundation.background
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.IconButton
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+import me.ash.reader.infrastructure.preference.readAiProviderCredentialsMap
+import me.ash.reader.infrastructure.preference.readActiveProviderId
+import me.ash.reader.infrastructure.preference.saveAiProviderCredentialsMap
+import me.ash.reader.infrastructure.preference.readAiSummaryPromptState
+import me.ash.reader.infrastructure.preference.saveAiSummaryPromptState
+import me.ash.reader.ui.ext.DataStoreKey
+import me.ash.reader.ui.ext.dataStore
+import me.ash.reader.ui.ext.put
+import me.ash.reader.ui.page.settings.ai.BuiltInProviders
+
 @Composable
 fun AiSummaryCard(
     summary: String,
@@ -56,11 +78,27 @@ fun AiSummaryCard(
     isExpanded: Boolean,
     onToggleExpanded: () -> Unit = {},
     onVisibilityChanged: (Boolean) -> Unit = {},
+    onRegenerate: () -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val view = LocalView.current
     val density = LocalDensity.current
     val minVisibleHeight = with(density) { 24.dp.toPx() }
     var lastVisibility by remember { mutableStateOf<Boolean?>(null) }
+
+    var activeProviderId by remember { mutableStateOf(context.readActiveProviderId()) }
+    var promptState by remember { mutableStateOf(context.readAiSummaryPromptState()) }
+    var providerMenuExpanded by remember { mutableStateOf(false) }
+    var promptMenuExpanded by remember { mutableStateOf(false) }
+
+    val activeProviderTitle = remember(activeProviderId) {
+        BuiltInProviders.find { it.id == activeProviderId }?.title ?: activeProviderId
+    }
+
+    val activePromptName = remember(promptState) {
+        promptState.currentPrompt?.name ?: "Default Prompt"
+    }
 
     Surface(
         modifier =
@@ -132,7 +170,117 @@ fun AiSummaryCard(
                     modifier = Modifier.padding(top = 8.dp),
                     color = MaterialTheme.colorScheme.outlineVariant,
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Provider & Prompt Controls Bar
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        // Provider Dropdown Chip
+                        Box {
+                            AssistChip(
+                                onClick = { providerMenuExpanded = true },
+                                label = { Text(activeProviderTitle, fontSize = 12.sp) },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Rounded.ArrowDropDown,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                    )
+                                },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                ),
+                            )
+                            DropdownMenu(
+                                expanded = providerMenuExpanded,
+                                onDismissRequest = { providerMenuExpanded = false },
+                            ) {
+                                BuiltInProviders.forEach { provider ->
+                                    DropdownMenuItem(
+                                        text = { Text(provider.title) },
+                                        onClick = {
+                                            providerMenuExpanded = false
+                                            activeProviderId = provider.id
+                                            val currentMap = context.readAiProviderCredentialsMap()
+                                            val creds = currentMap[provider.id]
+                                            scope.launch {
+                                                context.saveAiProviderCredentialsMap(
+                                                    map = currentMap,
+                                                    activeProviderId = provider.id,
+                                                )
+                                                if (creds != null && creds.apiKey.isNotBlank()) {
+                                                    context.dataStore.put(DataStoreKey.aiApiKey, creds.apiKey)
+                                                    context.dataStore.put(DataStoreKey.aiModel, creds.model)
+                                                    context.dataStore.put(DataStoreKey.aiBaseUrl, creds.baseUrl)
+                                                }
+                                            }
+                                            onRegenerate()
+                                        },
+                                    )
+                                }
+                            }
+                        }
+
+                        // Prompt Dropdown Chip
+                        Box {
+                            AssistChip(
+                                onClick = { promptMenuExpanded = true },
+                                label = { Text(activePromptName, fontSize = 12.sp) },
+                                trailingIcon = {
+                                    Icon(
+                                        Icons.Rounded.ArrowDropDown,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                    )
+                                },
+                                colors = AssistChipDefaults.assistChipColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                ),
+                            )
+                            DropdownMenu(
+                                expanded = promptMenuExpanded,
+                                onDismissRequest = { promptMenuExpanded = false },
+                            ) {
+                                promptState.prompts.forEach { preset ->
+                                    DropdownMenuItem(
+                                        text = { Text(preset.name) },
+                                        onClick = {
+                                            promptMenuExpanded = false
+                                            val newState = promptState.copy(activePromptId = preset.id)
+                                            promptState = newState
+                                            scope.launch {
+                                                context.saveAiSummaryPromptState(newState)
+                                            }
+                                            onRegenerate()
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    IconButton(
+                        onClick = onRegenerate,
+                        modifier = Modifier.size(36.dp),
+                    ) {
+                        Icon(
+                            Icons.Rounded.Refresh,
+                            contentDescription = "Regenerate Summary",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
 
                 if (isLoading) {
                     Column {
@@ -185,7 +333,7 @@ fun AiSummaryMarkdownContent(
     Column(modifier = modifier.fillMaxWidth()) {
         blocks.forEachIndexed { index, block ->
             if (index > 0) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(14.dp))
             }
             when (block) {
                 is AiChatMarkdownBlock.Heading -> {
@@ -203,11 +351,27 @@ fun AiSummaryMarkdownContent(
                 }
 
                 is AiChatMarkdownBlock.Paragraph -> {
-                    Text(
-                        text = buildMarkdownAnnotatedString(block.content),
-                        style = baseBodyStyle,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
+                    val subParagraphs = block.content.split("\n\n", "\n").map { it.trim() }.filter { it.isNotBlank() }
+                    if (subParagraphs.size > 1) {
+                        Column {
+                            subParagraphs.forEachIndexed { subIdx, subText ->
+                                if (subIdx > 0) {
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                }
+                                Text(
+                                    text = buildMarkdownAnnotatedString(subText),
+                                    style = baseBodyStyle,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
+                        }
+                    } else {
+                        Text(
+                            text = buildMarkdownAnnotatedString(block.content),
+                            style = baseBodyStyle,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
                 }
 
                 is AiChatMarkdownBlock.ListBlock -> {

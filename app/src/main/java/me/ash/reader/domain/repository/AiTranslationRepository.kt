@@ -19,14 +19,17 @@ class AiTranslationRepository @Inject constructor() {
         sourceBlocks: List<TranslationSourceBlock>,
     ): ApiResult<List<TranslatedArticleBlock>> {
         return try {
-            val service = OpenAiApiService.getInstance(baseUrl, apiKey)
+            val effectiveBaseUrl = OpenAiApiService.normalizeBaseUrl(baseUrl)
+            val effectiveModel = OpenAiApiService.normalizeModel(model, effectiveBaseUrl)
+            val effectiveApiKey = apiKey.split(",").map { it.trim() }.filter { it.isNotBlank() }.randomOrNull() ?: apiKey.trim()
+            val service = OpenAiApiService.getInstance(effectiveBaseUrl, effectiveApiKey)
             val translatedBlocks = mutableListOf<TranslatedArticleBlock>()
             val chunks = TranslationRequestChunker.chunk(sourceBlocks)
 
             for (chunk in chunks) {
                 val payloadJson = ArticleTranslationPayloadCodec.encodeSourceBlocks(chunk)
                 val request = ChatCompletionRequest(
-                    model = model,
+                    model = effectiveModel,
                     messages = buildTranslationMessages(prompt = prompt, payloadJson = payloadJson),
                     temperature = 0.2,
                     maxTokens = 1200,

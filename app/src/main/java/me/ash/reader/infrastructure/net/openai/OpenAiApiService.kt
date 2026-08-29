@@ -61,8 +61,40 @@ interface OpenAiApiService {
                 .create(OpenAiApiService::class.java)
         }
 
-        internal fun normalizeBaseUrl(baseUrl: String): String =
-            baseUrl.trim().trimEnd('/').takeIf { it.isNotBlank() }?.let { "$it/" }
-                ?: "https://api.openai.com/v1/"
+        internal fun normalizeBaseUrl(baseUrl: String): String {
+            val trimmed = baseUrl.trim().trimEnd('/')
+            if (trimmed.isBlank()) return "https://api.openai.com/v1/"
+
+            if (trimmed.contains("generativelanguage.googleapis.com", ignoreCase = true)) {
+                if (!trimmed.endsWith("/openai", ignoreCase = true)) {
+                    val base = if (trimmed.endsWith("/v1beta", ignoreCase = true) || trimmed.endsWith("/v1", ignoreCase = true)) {
+                        trimmed
+                    } else if (trimmed.contains("/v1beta", ignoreCase = true) || trimmed.contains("/v1", ignoreCase = true)) {
+                        trimmed
+                    } else {
+                        "$trimmed/v1beta"
+                    }
+                    val withOpenAi = if (base.endsWith("/openai", ignoreCase = true)) base else "$base/openai"
+                    return "$withOpenAi/"
+                }
+            }
+            return "$trimmed/"
+        }
+
+        fun normalizeModel(model: String, baseUrl: String = ""): String {
+            val selected = model.split(",")
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+                .randomOrNull() ?: model.trim()
+
+            var result = selected
+            val isGemini = baseUrl.contains("generativelanguage.googleapis.com", ignoreCase = true) ||
+                    result.contains("gemini", ignoreCase = true)
+
+            if (isGemini && result.startsWith("models/", ignoreCase = true)) {
+                result = result.substring("models/".length).trim()
+            }
+            return result
+        }
     }
 }

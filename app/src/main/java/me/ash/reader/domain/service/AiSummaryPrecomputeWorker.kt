@@ -23,6 +23,8 @@ import me.ash.reader.domain.repository.ArticleDao
 import me.ash.reader.domain.repository.PendingAiSummaryTaskDao
 import me.ash.reader.infrastructure.preference.Settings
 import me.ash.reader.infrastructure.preference.SettingsProvider
+import me.ash.reader.infrastructure.preference.readActiveProviderId
+import me.ash.reader.infrastructure.preference.readAiProviderCredentialsMap
 import me.ash.reader.infrastructure.rss.ReaderCacheHelper
 import me.ash.reader.ui.page.home.reading.resolveAiSummarizationPrompt
 import timber.log.Timber
@@ -133,12 +135,19 @@ constructor(
                 ?: articleWithFeed.article.shortDescription.takeIf { it.isNotBlank() }
                 ?: return TaskOutcome(articleId = task.articleId, deleteTask = true)
 
+        val activeProviderCreds = settingsProvider.preferences.readActiveProviderId().let { activeId ->
+            settingsProvider.preferences.readAiProviderCredentialsMap()[activeId]
+        }
+        val effectiveBaseUrl = activeProviderCreds?.baseUrl?.takeIf { it.isNotBlank() } ?: settings.aiBaseUrl.value
+        val effectiveApiKey = activeProviderCreds?.randomApiKey?.takeIf { it.isNotBlank() } ?: settings.aiApiKey.randomValue
+        val effectiveModel = activeProviderCreds?.randomModel?.takeIf { it.isNotBlank() } ?: settings.aiModel.randomValue
+
         return when (
             val result =
                 aiSummaryRepository.summarizeArticle(
-                    baseUrl = settings.aiBaseUrl.value,
-                    apiKey = settings.aiApiKey.randomValue,
-                    model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
+                    baseUrl = effectiveBaseUrl,
+                    apiKey = effectiveApiKey,
+                    model = effectiveModel,
                     prompt = resolveAiSummarizationPrompt(settings.aiSummarizationPrompt.value),
                     articleTitle = articleWithFeed.article.title,
                     feedName = articleWithFeed.feed.name,

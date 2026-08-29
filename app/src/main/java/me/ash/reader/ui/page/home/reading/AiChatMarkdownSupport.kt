@@ -200,7 +200,7 @@ fun parseAiChatMarkdownBlocks(markdown: String): List<AiChatMarkdownBlock> {
             paragraphLines += current.trim()
             index += 1
         }
-        blocks += AiChatMarkdownBlock.Paragraph(content = paragraphLines.joinToString(separator = "\n"))
+        blocks += AiChatMarkdownBlock.Paragraph(content = paragraphLines.joinToString(separator = " "))
     }
 
     return blocks

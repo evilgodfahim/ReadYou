@@ -18,7 +18,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           cache-disabled: false
-          gradle-home-cache-cleanup: true
+          gradle-home-cache-cleanup: false
       - name: Make gradlew executable
         run: chmod +x gradlew
       - name: Setup Keystore

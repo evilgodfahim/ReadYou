@@ -13,8 +13,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import me.ash.reader.domain.data.SyncLogger
 import me.ash.reader.domain.model.account.AccountType
 import me.ash.reader.domain.model.feed.Feed
@@ -27,6 +25,8 @@ import me.ash.reader.infrastructure.di.DefaultDispatcher
 import me.ash.reader.infrastructure.di.IODispatcher
 import me.ash.reader.infrastructure.rss.RssHelper
 import timber.log.Timber
+
+import me.ash.reader.domain.service.SyncProgressTracker
 
 private const val TAG = "LocalRssService"
 
@@ -70,7 +70,6 @@ constructor(
             require(currentAccount.type.id == AccountType.Local.id) {
                 "Account type is invalid"
             }
-            val semaphore = Semaphore(256)
 
             val feedsToSync =
                 when {
@@ -79,54 +78,77 @@ constructor(
                     else -> feedDao.queryAll(accountId)
                 }
 
-            // Phase 1: Pure parallel HTTP fetching & XML parsing (no DB contention)
-            val fetchedResults =
-                feedsToSync
-                    .map { currentFeed ->
-                        async(Dispatchers.IO) {
-                            semaphore.withPermit {
-                                currentFeed to syncFeed(currentFeed, preDate)
+            val totalFeeds = feedsToSync.size
+            if (totalFeeds > 0) {
+                SyncProgressTracker.startSync(totalFeeds)
+            }
+
+            var completedCount = 0
+            val workerJobs = feedsToSync.map { currentFeed ->
+                async(Dispatchers.IO) {
+                    try {
+                        val fetchedFeed = syncFeed(currentFeed, preDate)
+                        if (fetchedFeed.articles.isNotEmpty()) {
+                            val archivedArticles =
+                                feedDao
+                                    .queryArchivedArticles(currentFeed.id)
+                                    .map { it.link }
+                                    .toSet()
+
+                            val fetchedArticles =
+                                fetchedFeed.articles.filterNot {
+                                    archivedArticles.contains(it.link)
+                                }
+
+                            if (fetchedArticles.isNotEmpty()) {
+                                val newArticles =
+                                    articleDao.insertListIfNotExist(
+                                        articles = fetchedArticles,
+                                        feed = currentFeed,
+                                    )
+                                if (newArticles.isNotEmpty()) {
+                                    pendingAiSummaryEnqueuer.enqueue(accountId, newArticles)
+                                    if (currentFeed.isNotification) {
+                                        notificationHelper.notify(
+                                            fetchedFeed.copy(
+                                                articles = newArticles,
+                                                feed = currentFeed,
+                                            )
+                                        )
+                                    }
+                                }
                             }
                         }
-                    }
-                    .awaitAll()
-
-            // Phase 2: Save to Database
-            for ((currentFeed, fetchedFeed) in fetchedResults) {
-                if (fetchedFeed.articles.isEmpty()) continue
-                val archivedArticles =
-                    feedDao
-                        .queryArchivedArticles(currentFeed.id)
-                        .map { it.link }
-                        .toSet()
-
-                val fetchedArticles =
-                    fetchedFeed.articles.filterNot {
-                        archivedArticles.contains(it.link)
-                    }
-
-                if (fetchedArticles.isEmpty()) continue
-
-                val newArticles =
-                    articleDao.insertListIfNotExist(
-                        articles = fetchedArticles,
-                        feed = currentFeed,
-                    )
-                if (newArticles.isNotEmpty()) {
-                    pendingAiSummaryEnqueuer.enqueue(accountId, newArticles)
-                    if (currentFeed.isNotification) {
-                        notificationHelper.notify(
-                            fetchedFeed.copy(articles = newArticles, feed = currentFeed)
+                    } catch (e: Exception) {
+                        Timber.tag(TAG).e(e, "Error syncing feed ${currentFeed.name}")
+                    } finally {
+                        val currentDone = synchronized(this@LocalRssService) {
+                            completedCount++
+                            completedCount
+                        }
+                        SyncProgressTracker.updateProgress(
+                            synced = currentDone,
+                            total = totalFeeds,
+                            feedTitle = currentFeed.name,
                         )
                     }
                 }
+            }
+
+            workerJobs.awaitAll()
+
+            if (totalFeeds > 0) {
+                SyncProgressTracker.finishSync()
             }
 
             Timber.tag("RlOG").i("onCompletion: ${System.currentTimeMillis() - preTime}")
             accountService.update(currentAccount.copy(updateAt = Date()))
             ListenableWorker.Result.success()
         }
-            .onFailure { syncLogger.log(it) }
+            .onFailure {
+                SyncProgressTracker.finishSync()
+                syncLogger.log(it)
+            }
             .getOrNull() ?: ListenableWorker.Result.retry()
     }
 

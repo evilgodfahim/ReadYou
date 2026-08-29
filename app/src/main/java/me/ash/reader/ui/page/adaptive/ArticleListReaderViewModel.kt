@@ -77,6 +77,9 @@ import me.ash.reader.ui.page.home.reading.buildPrioritizedTranslationBatch
 import me.ash.reader.ui.page.home.reading.buildAiChatQuickQuestion
 import me.ash.reader.ui.page.home.reading.contextTypeForQuickAction
 import me.ash.reader.ui.page.home.reading.decodeStoredTranslationBlocks
+import me.ash.reader.infrastructure.preference.readActiveProviderId
+import me.ash.reader.infrastructure.preference.readAiProviderCredentialsMap
+import me.ash.reader.infrastructure.preference.readAiSummaryPromptState
 import me.ash.reader.ui.page.home.reading.resolveAiChatPrompt
 import me.ash.reader.ui.page.home.reading.resolveAiSummarizationPrompt
 import me.ash.reader.ui.page.home.reading.resolveAiTranslationPrompt
@@ -681,8 +684,17 @@ constructor(
         requestTranslation(TranslationTrigger.AUTO)
     }
 
-    private fun requestAiSummary(trigger: SummaryTrigger) {
-        if (aiSummaryJob?.isActive == true || readingUiState.value.isAiSummaryLoading) return
+    fun requestAiSummary(force: Boolean = false) {
+        requestAiSummary(SummaryTrigger.MANUAL, force)
+    }
+
+    private fun requestAiSummary(trigger: SummaryTrigger, force: Boolean = false) {
+        if (force) {
+            aiSummaryJob?.cancel()
+            aiSummaryJob = null
+        } else if (aiSummaryJob?.isActive == true || readingUiState.value.isAiSummaryLoading) {
+            return
+        }
         val job =
             viewModelScope.launch {
                 val targetArticle = currentArticle ?: return@launch
@@ -701,7 +713,18 @@ constructor(
                     )
                 }
 
-                if (settings.aiApiKey.randomValue.isEmpty() || settings.aiBaseUrl.value.isEmpty()) {
+                val activeProviderCreds = settingsProvider.preferences.readActiveProviderId().let { activeId ->
+                    settingsProvider.preferences.readAiProviderCredentialsMap()[activeId]
+                }
+                val effectiveBaseUrl = activeProviderCreds?.baseUrl?.takeIf { it.isNotBlank() } ?: settings.aiBaseUrl.value
+                val effectiveApiKey = activeProviderCreds?.randomApiKey?.takeIf { it.isNotBlank() } ?: settings.aiApiKey.randomValue
+                val effectiveModel = activeProviderCreds?.randomModel?.takeIf { it.isNotBlank() } ?: settings.aiModel.randomValue
+
+                val promptToUse = settingsProvider.preferences.readAiSummaryPromptState().currentPrompt.prompt.ifBlank {
+                    resolveAiSummarizationPrompt(settings.aiSummarizationPrompt.value)
+                }
+
+                if (effectiveApiKey.isEmpty() || effectiveBaseUrl.isEmpty()) {
                     updateAiSummaryStateIfCurrent(articleId) { state ->
                         state.copy(
                             isAiSummaryLoading = false,
@@ -735,10 +758,10 @@ constructor(
 
                 // Perform 1 API call per click
                 val result = aiSummaryRepository.summarizeArticle(
-                    baseUrl = settings.aiBaseUrl.value,
-                    apiKey = settings.aiApiKey.randomValue,
-                    model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
-                    prompt = resolveAiSummarizationPrompt(settings.aiSummarizationPrompt.value),
+                    baseUrl = effectiveBaseUrl,
+                    apiKey = effectiveApiKey,
+                    model = effectiveModel,
+                    prompt = promptToUse,
                     articleTitle = targetArticle.title,
                     feedName = feedTitle,
                     articleContent = articleContent
@@ -893,12 +916,19 @@ constructor(
                     )
                 if (nextBatch.isEmpty()) break
 
+                val activeProviderCreds = settingsProvider.preferences.readActiveProviderId().let { activeId ->
+                    settingsProvider.preferences.readAiProviderCredentialsMap()[activeId]
+                }
+                val effectiveBaseUrl = activeProviderCreds?.baseUrl?.takeIf { it.isNotBlank() } ?: settings.aiBaseUrl.value
+                val effectiveApiKey = activeProviderCreds?.randomApiKey?.takeIf { it.isNotBlank() } ?: settings.aiApiKey.randomValue
+                val effectiveModel = activeProviderCreds?.randomModel?.takeIf { it.isNotBlank() } ?: settings.aiModel.randomValue
+
                 when (
                     val result =
                         aiTranslationRepository.translateBlocks(
-                            baseUrl = settings.aiBaseUrl.value,
-                            apiKey = settings.aiApiKey.randomValue,
-                            model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
+                            baseUrl = effectiveBaseUrl,
+                            apiKey = effectiveApiKey,
+                            model = effectiveModel,
                             prompt = resolveAiTranslationPrompt(settings.aiTranslationPrompt.value),
                             sourceBlocks = nextBatch,
                         )
@@ -1299,12 +1329,19 @@ constructor(
                 return@launch
             }
 
+            val activeProviderCreds = settingsProvider.preferences.readActiveProviderId().let { activeId ->
+                settingsProvider.preferences.readAiProviderCredentialsMap()[activeId]
+            }
+            val effectiveBaseUrl = activeProviderCreds?.baseUrl?.takeIf { it.isNotBlank() } ?: settings.aiBaseUrl.value
+            val effectiveApiKey = activeProviderCreds?.randomApiKey?.takeIf { it.isNotBlank() } ?: settings.aiApiKey.randomValue
+            val effectiveModel = activeProviderCreds?.randomModel?.takeIf { it.isNotBlank() } ?: settings.aiModel.randomValue
+
             when (
                 val result =
                     aiChatRepository.requestReply(
-                        baseUrl = settings.aiBaseUrl.value,
-                        apiKey = settings.aiApiKey.randomValue,
-                        model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
+                        baseUrl = effectiveBaseUrl,
+                        apiKey = effectiveApiKey,
+                        model = effectiveModel,
                         prompt = resolveAiChatPrompt(settings.aiChatPrompt.value),
                         articleTitle = articleWithFeed.article.title,
                         feedName = articleWithFeed.feed.name,
@@ -1584,12 +1621,19 @@ constructor(
             }
         if (nextBatch.isEmpty()) return
 
+        val activeProviderCreds = settingsProvider.preferences.readActiveProviderId().let { activeId ->
+            settingsProvider.preferences.readAiProviderCredentialsMap()[activeId]
+        }
+        val effectiveBaseUrl = activeProviderCreds?.baseUrl?.takeIf { it.isNotBlank() } ?: settings.aiBaseUrl.value
+        val effectiveApiKey = activeProviderCreds?.randomApiKey?.takeIf { it.isNotBlank() } ?: settings.aiApiKey.randomValue
+        val effectiveModel = activeProviderCreds?.randomModel?.takeIf { it.isNotBlank() } ?: settings.aiModel.randomValue
+
         when (
             val result =
                 aiTranslationRepository.translateBlocks(
-                    baseUrl = settings.aiBaseUrl.value,
-                    apiKey = settings.aiApiKey.randomValue,
-                    model = settings.aiModel.randomValue.ifEmpty { "gpt-3.5-turbo" },
+                    baseUrl = effectiveBaseUrl,
+                    apiKey = effectiveApiKey,
+                    model = effectiveModel,
                     prompt = resolveAiTranslationPrompt(settings.aiTranslationPrompt.value),
                     sourceBlocks = nextBatch,
                 )
