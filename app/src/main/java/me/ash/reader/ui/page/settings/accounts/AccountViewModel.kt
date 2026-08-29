@@ -18,6 +18,7 @@ import me.ash.reader.domain.model.account.Account
 import me.ash.reader.domain.service.AccountService
 import me.ash.reader.domain.service.OpmlService
 import me.ash.reader.domain.service.RssService
+import me.ash.reader.domain.service.SyncManager
 import me.ash.reader.infrastructure.di.ApplicationScope
 import me.ash.reader.infrastructure.di.DefaultDispatcher
 import me.ash.reader.infrastructure.di.IODispatcher
@@ -29,6 +30,7 @@ class AccountViewModel @Inject constructor(
     private val accountService: AccountService,
     private val rssService: RssService,
     private val opmlService: OpmlService,
+    private val syncManager: SyncManager,
     @IODispatcher
     private val ioDispatcher: CoroutineDispatcher,
     @DefaultDispatcher
@@ -105,7 +107,7 @@ class AccountViewModel @Inject constructor(
             try {
                 val rssService = rssService.get(addAccount.type.id)
                 if (rssService.validCredentials(account)) {
-                    rssService.doSyncOneTime()
+                    syncManager.syncImmediately(addAccount.id)
                     withContext(mainDispatcher) {
                         callback(addAccount, null)
                     }

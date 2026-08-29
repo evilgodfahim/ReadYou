@@ -58,6 +58,7 @@ import androidx.compose.ui.util.fastAny
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.eventFlow
 import androidx.work.WorkInfo
 import kotlin.collections.set
@@ -137,11 +138,10 @@ fun FeedsPage(
 
     val owner = LocalLifecycleOwner.current
 
-    var isSyncing by remember { mutableStateOf(false) }
+    val isSyncing by feedsViewModel.isSyncingFlow.collectAsStateWithLifecycle(initialValue = false)
     val syncingState = rememberPullToRefreshState()
     val syncingScope = rememberCoroutineScope()
     val doSync: () -> Unit = {
-        isSyncing = true
         syncingScope.launch { feedsViewModel.sync() }
     }
 
@@ -160,12 +160,7 @@ fun FeedsPage(
                 }
             }
         }
-        feedsViewModel.syncWorkLiveData.observe(owner) { workInfoList ->
-            workInfoList.let {
-                isSyncing = it.any { workInfo -> workInfo.state == WorkInfo.State.RUNNING }
-            }
-        }
-        onDispose { feedsViewModel.syncWorkLiveData.removeObservers(owner) }
+        onDispose { /* no-op */ }
     }
 
     fun expandAllGroups() {

@@ -20,6 +20,7 @@ import me.ash.reader.domain.service.AppService
 import me.ash.reader.domain.service.LocalRssService
 import me.ash.reader.domain.service.OpmlService
 import me.ash.reader.domain.service.RssService
+import me.ash.reader.domain.service.SyncManager
 import me.ash.reader.infrastructure.db.AndroidDatabase
 import me.ash.reader.infrastructure.di.ApplicationScope
 import me.ash.reader.infrastructure.di.IODispatcher
@@ -73,6 +74,8 @@ class AndroidApp : Application(), Configuration.Provider {
 
     @Inject lateinit var rssService: RssService
 
+    @Inject lateinit var syncManager: SyncManager
+
     @Inject @ApplicationScope lateinit var applicationScope: CoroutineScope
 
     @Inject @IODispatcher lateinit var ioDispatcher: CoroutineDispatcher
@@ -123,7 +126,7 @@ class AndroidApp : Application(), Configuration.Provider {
             if (accountService.isNoAccount()) {
                 launch { accountService.initWithDefaultAccount() }
                     .invokeOnCompletion {
-                        rssService.get().doSyncOneTime(accountService.getCurrentAccountId())
+                        syncManager.syncImmediately(accountService.getCurrentAccountId())
                     }
             }
         }

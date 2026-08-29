@@ -31,7 +31,7 @@ import me.ash.reader.domain.data.DiffMapHolder
 import me.ash.reader.domain.data.FilterState
 import me.ash.reader.domain.data.FilterStateUseCase
 import me.ash.reader.domain.data.GroupWithFeedsListUseCase
-import me.ash.reader.domain.service.SyncWorker
+import me.ash.reader.domain.service.SyncManager
 import me.ash.reader.infrastructure.di.ApplicationScope
 import me.ash.reader.infrastructure.di.DefaultDispatcher
 import me.ash.reader.infrastructure.di.IODispatcher
@@ -45,7 +45,7 @@ private const val TAG = "FeedsViewModel"
 class FeedsViewModel @Inject constructor(
     private val accountService: AccountService,
     private val rssService: RssService,
-    private val workManager: WorkManager,
+    private val syncManager: SyncManager,
     private val androidStringsHelper: AndroidStringsHelper,
     @DefaultDispatcher
     private val defaultDispatcher: CoroutineDispatcher,
@@ -63,7 +63,7 @@ class FeedsViewModel @Inject constructor(
         MutableStateFlow(FeedsUiState())
     val feedsUiState: StateFlow<FeedsUiState> = _feedsUiState.asStateFlow()
 
-    val syncWorkLiveData = workManager.getWorkInfosByTagLiveData(SyncWorker.SYNC_TAG)
+    val isSyncingFlow = syncManager.isSyncing
 
     val filterStateFlow = filterStateUseCase.filterStateFlow
     val groupWithFeedsListFlow = groupWithFeedsListUseCase.groupWithFeedListFlow
@@ -71,9 +71,7 @@ class FeedsViewModel @Inject constructor(
     var currentJob: Job? = null
 
     fun sync() {
-        applicationScope.launch(ioDispatcher) {
-            rssService.get().doSyncOneTime()
-        }
+        syncManager.syncImmediately()
     }
 
     fun commitDiffs() = diffMapHolder.commitDiffsToDb()

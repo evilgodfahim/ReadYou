@@ -173,7 +173,7 @@ constructor(
         // TODO: When users need to subscribe to multiple feeds continuously, this makes them
         // uncomfortable.
         //  It is necessary to make syncWork support synchronizing individual specified feeds.
-        // super.doSyncOneTime()
+        // SyncWorker.enqueueOneTimeWork(workManager, androidx.work.workDataOf("accountId" to accountId))
     }
 
     override suspend fun addGroup(destFeed: Feed?, newGroupName: String): String {

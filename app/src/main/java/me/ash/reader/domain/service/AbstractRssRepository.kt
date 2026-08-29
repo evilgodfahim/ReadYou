@@ -187,22 +187,14 @@ abstract class AbstractRssRepository(
         SyncWorker.cancelOneTimeWork(workManager)
     }
 
-    open fun doSyncOneTime(
-        accountId: Int = accountService.getCurrentAccountId(),
-        feedId: String? = null,
-        groupId: String? = null,
-    ) {
-        SyncWorker.enqueueOneTimeWork(
-            workManager,
-            workDataOf("accountId" to accountId, "feedId" to feedId, "groupId" to groupId),
-        )
-    }
-
     fun initSync() {
         accountService.getCurrentAccount().let {
             val syncOnStart = it.syncOnStart.value
             if (syncOnStart) {
-                doSyncOneTime(it.id!!)
+                SyncWorker.enqueueOneTimeWork(
+                    workManager,
+                    androidx.work.workDataOf("accountId" to it.id!!, "feedId" to null, "groupId" to null),
+                )
             }
             if (it.syncInterval.value != SyncIntervalPreference.Manually.value) {
                 SyncWorker.enqueuePeriodicWork(account = it, workManager = workManager)

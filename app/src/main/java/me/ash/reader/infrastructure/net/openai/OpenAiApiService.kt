@@ -27,38 +27,59 @@ interface OpenAiApiService {
     ): Response<ResponseBody>
 
     companion object {
+        private val sharedConnectionPool = okhttp3.ConnectionPool(16, 5, TimeUnit.MINUTES)
+        private val sharedDispatcher = okhttp3.Dispatcher().apply {
+            maxRequests = 64
+            maxRequestsPerHost = 16
+        }
+
+        private val baseClient: OkHttpClient by lazy {
+            OkHttpClient.Builder()
+                .dispatcher(sharedDispatcher)
+                .connectionPool(sharedConnectionPool)
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .build()
+        }
+
+        private val serviceCache = java.util.concurrent.ConcurrentHashMap<String, OpenAiApiService>()
+
         fun getInstance(
             baseUrl: String,
             apiKey: String,
-            timeoutSeconds: Long = 30L,
+            timeoutSeconds: Long = 90L,
             callTimeoutSeconds: Long? = null,
         ): OpenAiApiService {
-            val authInterceptor = Interceptor { chain ->
-                val originalRequest: Request = chain.request()
-                val requestBuilder: Request.Builder = originalRequest.newBuilder()
-                    .header("Authorization", "Bearer $apiKey")
-                    .header("Content-Type", "application/json")
+            val normalizedUrl = normalizeBaseUrl(baseUrl)
+            val cacheKey = "$normalizedUrl|${apiKey.hashCode()}|$timeoutSeconds|$callTimeoutSeconds"
+            return serviceCache.getOrPut(cacheKey) {
+                val authInterceptor = Interceptor { chain ->
+                    val originalRequest: Request = chain.request()
+                    val requestBuilder: Request.Builder = originalRequest.newBuilder()
+                        .header("Authorization", "Bearer $apiKey")
+                        .header("Content-Type", "application/json")
 
-                val request: Request = requestBuilder.build()
-                chain.proceed(request)
+                    val request: Request = requestBuilder.build()
+                    chain.proceed(request)
+                }
+
+                val clientBuilder = baseClient.newBuilder()
+                    .addInterceptor(authInterceptor)
+                    .connectTimeout(15, TimeUnit.SECONDS)
+                    .readTimeout(timeoutSeconds, TimeUnit.SECONDS)
+                    .writeTimeout(timeoutSeconds, TimeUnit.SECONDS)
+                if (callTimeoutSeconds != null) {
+                    clientBuilder.callTimeout(callTimeoutSeconds, TimeUnit.SECONDS)
+                }
+                val client = clientBuilder.build()
+
+                Retrofit.Builder()
+                    .baseUrl(normalizedUrl)
+                    .client(client)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build()
+                    .create(OpenAiApiService::class.java)
             }
-
-            val clientBuilder = OkHttpClient.Builder()
-                .addInterceptor(authInterceptor)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(timeoutSeconds, TimeUnit.SECONDS)
-                .writeTimeout(timeoutSeconds, TimeUnit.SECONDS)
-            if (callTimeoutSeconds != null) {
-                clientBuilder.callTimeout(callTimeoutSeconds, TimeUnit.SECONDS)
-            }
-            val client = clientBuilder.build()
-
-            return Retrofit.Builder()
-                .baseUrl(normalizeBaseUrl(baseUrl))
-                .client(client)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-                .create(OpenAiApiService::class.java)
         }
 
         internal fun normalizeBaseUrl(baseUrl: String): String {

@@ -21,6 +21,7 @@ import me.ash.reader.domain.model.group.Group
 import me.ash.reader.domain.service.AccountService
 import me.ash.reader.domain.service.OpmlService
 import me.ash.reader.domain.service.RssService
+import me.ash.reader.domain.service.SyncManager
 import me.ash.reader.infrastructure.android.AndroidStringsHelper
 import me.ash.reader.infrastructure.di.ApplicationScope
 import me.ash.reader.infrastructure.preference.SettingsProvider
@@ -35,6 +36,7 @@ constructor(
     private val opmlService: OpmlService,
     val rssService: RssService,
     private val rssHelper: RssHelper,
+    private val syncManager: SyncManager,
     private val androidStringsHelper: AndroidStringsHelper,
     private val settingsProvider: SettingsProvider,
     @ApplicationScope private val applicationScope: CoroutineScope,
@@ -75,7 +77,7 @@ constructor(
     fun importFromInputStream(inputStream: InputStream) {
         applicationScope.launch {
             opmlService.saveToDatabase(inputStream)
-            rssService.get().doSyncOneTime()
+            syncManager.syncImmediately()
         }
     }
 

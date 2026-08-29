@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import me.ash.reader.domain.data.ArticlePagingListUseCase
 import me.ash.reader.domain.data.DiffMapHolder
 import me.ash.reader.domain.data.FilterState
@@ -51,6 +52,7 @@ import me.ash.reader.domain.service.GoogleReaderRssService
 import me.ash.reader.domain.service.AccountService
 import me.ash.reader.domain.service.LocalRssService
 import me.ash.reader.domain.service.RssService
+import me.ash.reader.domain.service.SyncManager
 import me.ash.reader.domain.service.SyncWorker
 import me.ash.reader.infrastructure.android.AndroidImageDownloader
 import me.ash.reader.infrastructure.android.TextToSpeechManager
@@ -132,6 +134,7 @@ constructor(
     private val aiTranslationRepository: AiTranslationRepository,
     private val aiChatRepository: AiChatRepository,
     private val aiChatSessionRepository: AiChatSessionRepository,
+    private val syncManager: SyncManager,
     workManager: WorkManager,
 ) : ViewModel() {
 
@@ -193,20 +196,7 @@ constructor(
             }
             .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val syncWorkerStatusFlow =
-        workManager
-            .getWorkInfosByTagFlow(SyncWorker.SYNC_TAG)
-            .map { it.any { workInfo -> workInfo.state == WorkInfo.State.RUNNING } }
-            .stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    private val _isSyncingFlow = MutableStateFlow(false)
-    val isSyncingFlow = _isSyncingFlow.asStateFlow()
-
-    init {
-        viewModelScope.launch {
-            syncWorkerStatusFlow.debounce(500L).collect { _isSyncingFlow.value = it }
-        }
-    }
+    val isSyncingFlow: StateFlow<Boolean> = syncManager.isSyncing
 
     fun updateReadStatus(
         groupId: String?,
@@ -407,35 +397,11 @@ constructor(
 
     fun sync() {
         diffMapHolder.commitDiffsToDb()
-        viewModelScope.launch {
-            _isSyncingFlow.value = true
-            val isSyncing = syncWorkerStatusFlow.value
-            if (!isSyncing) {
-                delay(1000L)
-                if (syncWorkerStatusFlow.value == false) {
-                    _isSyncingFlow.value = false
-                }
-            }
-        }
-        applicationScope.launch(ioDispatcher) {
-            val filterState = filterStateUseCase.filterStateFlow.value
-            val service = rssService.get()
-            when (service) {
-                is LocalRssService ->
-                    service.doSyncOneTime(
-                        feedId = filterState.feed?.id,
-                        groupId = filterState.group?.id,
-                    )
-
-                is GoogleReaderRssService ->
-                    service.doSyncOneTime(
-                        feedId = filterState.feed?.id,
-                        groupId = filterState.group?.id,
-                    )
-
-                else -> service.doSyncOneTime()
-            }
-        }
+        val filterState = filterStateUseCase.filterStateFlow.value
+        syncManager.syncImmediately(
+            feedId = filterState.feed?.id,
+            groupId = filterState.group?.id,
+        )
     }
 
     fun resetFilter() =
@@ -740,7 +706,9 @@ constructor(
                 val fullContent = if (!cachedFull.isNullOrBlank()) {
                     cachedFull
                 } else {
-                    readerCacheHelper.readOrFetchFullContent(targetArticle).getOrNull()
+                    withTimeoutOrNull(4000L) {
+                        readerCacheHelper.readOrFetchFullContent(targetArticle).getOrNull()
+                    }
                 }
 
                 val articleContent = fullContent?.takeIf { it.isNotBlank() }

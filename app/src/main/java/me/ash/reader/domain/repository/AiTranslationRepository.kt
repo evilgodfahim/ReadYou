@@ -22,7 +22,12 @@ class AiTranslationRepository @Inject constructor() {
             val effectiveBaseUrl = OpenAiApiService.normalizeBaseUrl(baseUrl)
             val effectiveModel = OpenAiApiService.normalizeModel(model, effectiveBaseUrl)
             val effectiveApiKey = apiKey.split(",").map { it.trim() }.filter { it.isNotBlank() }.randomOrNull() ?: apiKey.trim()
-            val service = OpenAiApiService.getInstance(effectiveBaseUrl, effectiveApiKey)
+            val service = OpenAiApiService.getInstance(
+                baseUrl = effectiveBaseUrl,
+                apiKey = effectiveApiKey,
+                timeoutSeconds = 60L,
+                callTimeoutSeconds = 60L,
+            )
             val translatedBlocks = mutableListOf<TranslatedArticleBlock>()
             val chunks = TranslationRequestChunker.chunk(sourceBlocks)
 

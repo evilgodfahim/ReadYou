@@ -142,7 +142,12 @@ class AiSummaryRepository @Inject constructor() {
             val effectiveBaseUrl = OpenAiApiService.normalizeBaseUrl(baseUrl)
             val effectiveModel = OpenAiApiService.normalizeModel(model, effectiveBaseUrl)
             val effectiveApiKey = apiKey.split(",").map { it.trim() }.filter { it.isNotBlank() }.randomOrNull() ?: apiKey.trim()
-            val service = OpenAiApiService.getInstance(effectiveBaseUrl, effectiveApiKey)
+            val service = OpenAiApiService.getInstance(
+                baseUrl = effectiveBaseUrl,
+                apiKey = effectiveApiKey,
+                timeoutSeconds = AI_SUMMARY_TIMEOUT_SECONDS,
+                callTimeoutSeconds = AI_SUMMARY_TIMEOUT_SECONDS,
+            )
             val messages = buildSummaryMessages(
                 prompt = prompt,
                 articleTitle = articleTitle,
@@ -158,7 +163,9 @@ class AiSummaryRepository @Inject constructor() {
                 maxTokens = 2500
             )
 
-            val response = service.createChatCompletion(request)
+            val response = withTimeout(AI_SUMMARY_TIMEOUT_SECONDS * 1000L) {
+                service.createChatCompletion(request)
+            }
 
             if (response.isSuccessful && response.body() != null) {
                 val choices = response.body()!!.choices
@@ -303,3 +310,4 @@ data class CommuteBriefRecommendationCandidate(
 private const val MAX_RECOMMENDATION_SUMMARY_CHARS = 800
 private const val COMMUTE_BRIEF_RECOMMENDATION_TIMEOUT_SECONDS = 60L
 private const val AI_CONNECTION_TEST_TIMEOUT_SECONDS = 15L
+private const val AI_SUMMARY_TIMEOUT_SECONDS = 90L

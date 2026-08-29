@@ -67,8 +67,8 @@ object OkHttpClientModule {
         return cachingHttpClient(
             context = context,
             cacheDirectory = context.cacheDir.resolve("http"),
-            connectTimeoutSecs = 4L,
-            readTimeoutSecs = 6L,
+            connectTimeoutSecs = 15L,
+            readTimeoutSecs = 30L,
         ).newBuilder()
             .dispatcher(dispatcher)
             .connectionPool(connectionPool)
@@ -162,7 +162,11 @@ fun OkHttpClient.Builder.setupSsl(
         }
 
         val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(arrayOf(clientKeyManager), arrayOf(trustManager), null)
+        sslContext.init(
+            if (clientKeyManager != null) arrayOf(clientKeyManager) else null,
+            arrayOf(trustManager),
+            null
+        )
         val sslSocketFactory = sslContext.socketFactory
 
         sslSocketFactory(sslSocketFactory, trustManager)
