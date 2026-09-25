@@ -14,6 +14,13 @@ import me.ash.reader.infrastructure.preference.LocalDarkTheme
 @Composable
 fun dynamicLightColorScheme(): ColorScheme {
     val palettes = LocalTonalPalettes.current
+
+    // Soothing warm paper palette to eliminate harsh contrast and eye strain
+    val soothingLightOnSurface = Color(0xFF2C2A26)
+    val soothingLightOnSurfaceVariant = Color(0xFF5A5750)
+    val soothingLightBackground = Color(0xFFF8F6F1)
+    val soothingLightSurface = Color(0xFFFAF8F3)
+
     return lightColorScheme(
         primary = palettes primary 40,
         onPrimary = palettes primary 100,
@@ -28,24 +35,24 @@ fun dynamicLightColorScheme(): ColorScheme {
         onTertiary = palettes tertiary 100,
         tertiaryContainer = palettes tertiary 90,
         onTertiaryContainer = palettes tertiary 30,
-        background = palettes neutral 99,
-        onBackground = palettes neutral 10,
-        surface = palettes neutral 98,
-        onSurface = palettes neutral 10,
+        background = soothingLightBackground,
+        onBackground = soothingLightOnSurface,
+        surface = soothingLightSurface,
+        onSurface = soothingLightOnSurface,
         surfaceVariant = palettes neutralVariant 90,
-        onSurfaceVariant = palettes neutralVariant 30,
+        onSurfaceVariant = soothingLightOnSurfaceVariant,
         surfaceTint = palettes primary 40,
         inverseSurface = palettes neutral 20,
         inverseOnSurface = palettes neutral 95,
         outline = palettes neutralVariant 50,
         outlineVariant = palettes neutralVariant 80,
-        surfaceBright = palettes neutral 98,
-        surfaceDim = palettes neutral 87,
-        surfaceContainerLowest = palettes neutral 100,
-        surfaceContainerLow = palettes neutral 96,
-        surfaceContainer = palettes neutral 94,
-        surfaceContainerHigh = palettes neutral 92,
-        surfaceContainerHighest = palettes neutral 90,
+        surfaceBright = Color(0xFFFCFAF6),
+        surfaceDim = Color(0xFFEBE8E1),
+        surfaceContainerLowest = Color(0xFFFFFFFF),
+        surfaceContainerLow = Color(0xFFF5F3ED),
+        surfaceContainer = Color(0xFFF0EDE6),
+        surfaceContainerHigh = Color(0xFFEAE7DF),
+        surfaceContainerHighest = Color(0xFFE4E1D8),
         primaryFixed = palettes primary 90,
         onPrimaryFixed = palettes primary 10,
         primaryFixedDim = palettes primary 90,
@@ -66,29 +73,30 @@ fun dynamicDarkColorScheme(): ColorScheme {
     val palettes = LocalTonalPalettes.current
     val useAmoledDarkTheme = LocalAmoledDarkTheme.current.value
 
-    // Kindle / Apple Books inspired eye-soothing dark theme:
-    // Warm, deep background tones and soft bone/linen off-white typography to avoid eye strain.
-    val soothingOnSurface = Color(0xFFE8E5DF)
-    val soothingOnSurfaceVariant = Color(0xFFCBC7BE)
-    val soothingBackground = if (useAmoledDarkTheme) Color.Black else Color(0xFF131315)
-    val soothingSurface = if (useAmoledDarkTheme) Color.Black else Color(0xFF17171A)
-    val soothingSurfaceContainerLowest = if (useAmoledDarkTheme) Color.Black else Color(0xFF0F0F11)
-    val soothingSurfaceContainerLow = if (useAmoledDarkTheme) Color(0xFF121214) else Color(0xFF1A1A1D)
-    val soothingSurfaceContainer = if (useAmoledDarkTheme) Color(0xFF161619) else Color(0xFF1F1F23)
-    val soothingSurfaceContainerHigh = if (useAmoledDarkTheme) Color(0xFF1D1D21) else Color(0xFF26262B)
-    val soothingSurfaceContainerHighest = if (useAmoledDarkTheme) Color(0xFF242429) else Color(0xFF2D2D33)
+    // Kindle-like soothing darkness:
+    // Pure deep pitch-black canvas with warm, gentle bone/cream white typography
+    // (zero blue glare, high ocular comfort for night and extended reading)
+    val soothingOnSurface = Color(0xFFC8C2B6)
+    val soothingOnSurfaceVariant = Color(0xFF7E7A73)
+    val soothingBackground = Color.Black
+    val soothingSurface = Color.Black
+    val soothingSurfaceContainerLowest = Color.Black
+    val soothingSurfaceContainerLow = if (useAmoledDarkTheme) Color.Black else Color(0xFF0C0C0D)
+    val soothingSurfaceContainer = if (useAmoledDarkTheme) Color(0xFF0F0F11) else Color(0xFF131315)
+    val soothingSurfaceContainerHigh = if (useAmoledDarkTheme) Color(0xFF161618) else Color(0xFF19191C)
+    val soothingSurfaceContainerHighest = if (useAmoledDarkTheme) Color(0xFF1B1B1E) else Color(0xFF202024)
 
     return darkColorScheme(
-        primary = palettes primary 80,
+        primary = palettes primary 75,
         onPrimary = palettes primary 20,
         primaryContainer = palettes primary 30,
         onPrimaryContainer = palettes primary 90,
         inversePrimary = palettes primary 40,
-        secondary = palettes secondary 80,
+        secondary = palettes secondary 75,
         onSecondary = palettes secondary 20,
         secondaryContainer = palettes secondary 30,
         onSecondaryContainer = palettes secondary 90,
-        tertiary = palettes tertiary 80,
+        tertiary = palettes tertiary 75,
         onTertiary = palettes tertiary 20,
         tertiaryContainer = palettes tertiary 30,
         onTertiaryContainer = palettes tertiary 90,
@@ -96,14 +104,14 @@ fun dynamicDarkColorScheme(): ColorScheme {
         onBackground = soothingOnSurface,
         surface = soothingSurface,
         onSurface = soothingOnSurface,
-        surfaceVariant = palettes neutralVariant 30,
+        surfaceVariant = Color(0xFF171719),
         onSurfaceVariant = soothingOnSurfaceVariant,
-        surfaceTint = palettes primary 80,
-        inverseSurface = Color(0xFFE8E5DF),
-        inverseOnSurface = Color(0xFF1C1B1A),
-        outline = Color(0xFF484643),
-        outlineVariant = Color(0xFF302F2D),
-        surfaceBright = Color(0xFF36353B),
+        surfaceTint = palettes primary 75,
+        inverseSurface = Color(0xFFD2CEC7),
+        inverseOnSurface = Color(0xFF141414),
+        outline = Color(0xFF2C2B29),
+        outlineVariant = Color(0xFF1E1D1B),
+        surfaceBright = Color(0xFF2B2B30),
         surfaceDim = soothingSurface,
         surfaceContainerLowest = soothingSurfaceContainerLowest,
         surfaceContainerLow = soothingSurfaceContainerLow,

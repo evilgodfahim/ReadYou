@@ -45,9 +45,9 @@ sealed class ReadingFontsPreference(val value: Int) : Preference() {
 
     fun toDesc(context: Context): String =
         when (this) {
-            GoogleSans -> "Playfair & Nikosh"
-            System -> "Playfair Display & Nikosh (Default)"
-            Serif -> "Playfair Display & Nikosh (Serif)"
+            GoogleSans -> "Playfair & Purno"
+            System -> "Playfair Display & Purno (Default)"
+            Serif -> "Playfair Display & Purno (Serif)"
             SansSerif -> "Sans-Serif"
             Monospace -> "Monospace"
             Cursive -> "Cursive"

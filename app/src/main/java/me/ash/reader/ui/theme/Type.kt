@@ -96,28 +96,28 @@ private val PlayfairBoldItalic =
         style = FontStyle.Italic,
     )
 
-private val NikoshRegular =
+private val PurnoRegular =
     Font(
-        R.font.nikosh,
+        R.font.purno_regular,
         weight = FontWeight.W400,
     )
 
-private val NikoshRegularItalic =
+private val PurnoRegularItalic =
     Font(
-        R.font.nikosh,
+        R.font.purno_italic,
         weight = FontWeight.W400,
         style = FontStyle.Italic,
     )
 
-private val NikoshBold =
+private val PurnoBold =
     Font(
-        R.font.nikosh,
+        R.font.purno_bold,
         weight = FontWeight.W700,
     )
 
-private val NikoshBoldItalic =
+private val PurnoBoldItalic =
     Font(
-        R.font.nikosh,
+        R.font.purno_bold_italic,
         weight = FontWeight.W700,
         style = FontStyle.Italic,
     )
@@ -132,10 +132,10 @@ val GlobalFallbackFontFamily =
         PlayfairSemiBoldItalic,
         PlayfairBold,
         PlayfairBoldItalic,
-        NikoshRegular,
-        NikoshRegularItalic,
-        NikoshBold,
-        NikoshBoldItalic,
+        PurnoRegular,
+        PurnoRegularItalic,
+        PurnoBold,
+        PurnoBoldItalic,
     )
 
 @Volatile
@@ -151,14 +151,18 @@ fun getGlobalFontFamily(context: Context): FontFamily {
                 val playfairFamily =
                     android.graphics.fonts.FontFamily.Builder(playfairFont).build()
 
-                val nikoshFont =
-                    android.graphics.fonts.Font.Builder(context.resources, R.font.nikosh).build()
-                val nikoshFamily =
-                    android.graphics.fonts.FontFamily.Builder(nikoshFont).build()
+                val purnoRegularFont =
+                    android.graphics.fonts.Font.Builder(context.resources, R.font.purno_regular).build()
+                val purnoBoldFont =
+                    android.graphics.fonts.Font.Builder(context.resources, R.font.purno_bold).build()
+                val purnoFamily =
+                    android.graphics.fonts.FontFamily.Builder(purnoRegularFont)
+                        .addFont(purnoBoldFont)
+                        .build()
 
                 val customTypeface =
                     Typeface.CustomFallbackBuilder(playfairFamily)
-                        .addCustomFallback(nikoshFamily)
+                        .addCustomFallback(purnoFamily)
                         .build()
                 FontFamily(customTypeface)
             } else {

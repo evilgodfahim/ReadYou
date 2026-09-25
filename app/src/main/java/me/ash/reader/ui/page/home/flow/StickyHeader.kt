@@ -9,7 +9,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import me.ash.reader.ui.ext.surfaceColorAtElevation
 import me.ash.reader.ui.theme.palette.onDark
 
@@ -30,13 +33,15 @@ fun StickyHeader(
     ) {
         Text(
             modifier = Modifier
-                .padding(
-                    start = if (isShowFeedIcon) 54.dp else 24.dp,
-                )
-                .padding(top = 8.dp, bottom = 4.dp),
-            text = dateString,
-            color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.labelLarge,
+                .padding(start = 16.dp)
+                .padding(top = 18.dp, bottom = 8.dp),
+            text = dateString.uppercase(),
+            color = Color(0xFF6B6760),
+            style = MaterialTheme.typography.labelSmall.merge(
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 1.6.sp,
+            ),
         )
     }
 }

@@ -12,8 +12,13 @@ object WebViewStyle {
             src: url("file://$fontPath")
         }
         @font-face {
-            font-family: 'Nikosh';
-            src: url("file:///android_res/font/nikosh.ttf");
+            font-family: 'Purno';
+            src: url("file:///android_res/font/purno_regular.ttf");
+        }
+        @font-face {
+            font-family: 'Purno';
+            src: url("file:///android_res/font/purno_bold.ttf");
+            font-weight: bold;
         }
     """.trimIndent() else """
         @font-face {
@@ -21,17 +26,22 @@ object WebViewStyle {
             src: url("file:///android_res/font/playfair_display.ttf");
         }
         @font-face {
-            font-family: 'Nikosh';
-            src: url("file:///android_res/font/nikosh.ttf");
+            font-family: 'Purno';
+            src: url("file:///android_res/font/purno_regular.ttf");
+        }
+        @font-face {
+            font-family: 'Purno';
+            src: url("file:///android_res/font/purno_bold.ttf");
+            font-weight: bold;
         }
     """.trimIndent()
 
     private fun applyFontFamily(
         fontPath: String? = null
     ): String = if (fontPath != null) """
-        --font-family: external, 'PlayfairDisplay', 'Nikosh', serif;
+        --font-family: external, 'PlayfairDisplay', 'Purno', serif;
     """.trimIndent() else """
-        --font-family: 'PlayfairDisplay', 'Nikosh', serif;
+        --font-family: 'PlayfairDisplay', 'Purno', serif;
     """.trimIndent()
 
     fun get(

@@ -41,10 +41,10 @@ sealed class BasicFontsPreference(val value: Int) : Preference() {
 
     fun toDesc(context: Context): String =
         when (this) {
-            System -> "Playfair Display & Nikosh (Default)"
-            GoogleSans -> "Playfair & Nikosh"
+            System -> "Playfair Display & Purno (Default)"
+            GoogleSans -> "Playfair & Purno"
             External -> context.getString(R.string.external_fonts)
-            Serif -> "Playfair Display & Nikosh"
+            Serif -> "Playfair Display & Purno"
         }
 
     fun asFontFamily(context: Context): FontFamily =

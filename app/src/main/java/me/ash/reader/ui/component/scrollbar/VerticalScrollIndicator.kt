@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 private val ThumbColor
-    @Composable get() = MaterialTheme.colorScheme.outline.copy(alpha = .5f)
+    @Composable get() = Color.Gray.copy(alpha = 0.5f)
 
 @Composable
 fun Modifier.drawVerticalScrollIndicator(scrollState: ScrollState): Modifier {

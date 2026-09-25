@@ -409,7 +409,7 @@ fun FlowPage(
                                 BasicText(
                                     modifier =
                                         Modifier.padding(
-                                            start = if (articleListFeedIcon.value) 34.dp else 8.dp,
+                                            start = 4.dp,
                                             end = 24.dp,
                                         ),
                                     text = titleText,
@@ -431,7 +431,7 @@ fun FlowPage(
                                 )
                             }
                         },
-                        expandedHeight = 172.dp,
+                        expandedHeight = 148.dp,
                         scrollBehavior = scrollBehavior,
                         navigationIcon = {
                             FeedbackIconButton(

@@ -45,11 +45,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
@@ -68,6 +73,7 @@ import me.ash.reader.infrastructure.preference.LocalArticleListSwipeStartAction
 import me.ash.reader.infrastructure.preference.LocalFlowArticleListDesc
 import me.ash.reader.infrastructure.preference.LocalFlowArticleListFeedIcon
 import me.ash.reader.infrastructure.preference.LocalFlowArticleListFeedName
+import me.ash.reader.ui.theme.palette.onLight
 import me.ash.reader.infrastructure.preference.LocalFlowArticleListImage
 import me.ash.reader.infrastructure.preference.LocalFlowArticleListReadIndicator
 import me.ash.reader.infrastructure.preference.LocalFlowArticleListTime
@@ -155,166 +161,161 @@ fun ArticleItem(
     val articleListDate = LocalFlowArticleListTime.current
     val articleListReadIndicator = LocalFlowArticleListReadIndicator.current
 
-    Column(
+    val showIndicator =
+        when (articleListReadIndicator) {
+            FlowArticleReadIndicatorPreference.None -> false
+            FlowArticleReadIndicatorPreference.AllRead -> isUnread
+            FlowArticleReadIndicatorPreference.ExcludingStarred -> isUnread || isStarred
+        }
+
+    val indicatorColor = Color(0xFF5A5751)
+
+    Box(
         modifier =
             modifier
-                .padding(horizontal = 4.dp, vertical = 4.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(4.dp))
                 .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-                .padding(horizontal = 10.dp, vertical = 8.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp)
                 .alpha(
                     when (articleListReadIndicator) {
                         FlowArticleReadIndicatorPreference.None -> 1f
 
                         FlowArticleReadIndicatorPreference.AllRead -> {
-                            if (isUnread) 1f else 0.5f
+                            if (isUnread) 1f else 0.45f
                         }
 
                         FlowArticleReadIndicatorPreference.ExcludingStarred -> {
-                            if (isUnread || isStarred) 1f else 0.5f
+                            if (isUnread || isStarred) 1f else 0.45f
                         }
                     }
                 )
     ) {
-        // Top
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+            modifier =
+                Modifier.fillMaxWidth()
+                    .drawBehind {
+                        val strokeWidth = 2.dp.toPx()
+                        val x = strokeWidth / 2
+                        drawLine(
+                            color = indicatorColor,
+                            start = Offset(x, 2.dp.toPx()),
+                            end = Offset(x, size.height - 2.dp.toPx()),
+                            strokeWidth = strokeWidth,
+                            cap = StrokeCap.Round,
+                        )
+                    }
+                    .padding(start = 14.dp),
+            verticalAlignment = Alignment.Top,
         ) {
-            // Feed name
-            if (articleListFeedName.value) {
-                Text(
-                    modifier =
-                        Modifier.weight(1f)
-                            .padding(
-                                start = if (articleListFeedIcon.value) 30.dp else 0.dp,
-                                end = 10.dp,
-                            ),
-                    text = feedName,
-                    color = MaterialTheme.colorScheme.tertiary,
-                    style = MaterialTheme.typography.labelMedium.merge(fontSize = 13.sp),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier) {
-                    // Starred
-                    if (isStarred) {
-                        StarredIcon()
-                    }
-
-                    if (articleListDate.value) {
-                        // Time
-                        Text(
-                            modifier = Modifier,
-                            text = timeString ?: "",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelMedium.merge(fontSize = 13.sp),
-                        )
-                    }
-                }
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Spacer(Modifier.width(if (articleListFeedIcon.value) 30.dp else 0.dp))
-
-                    if (articleListDate.value) {
-                        // Time
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = timeString ?: "",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelMedium.merge(fontSize = 13.sp),
-                        )
-                        // Starred
-                        if (isStarred) {
-                            StarredIcon()
-                        }
-                    }
-                }
-            }
-
-            // Right
-
-        }
-
-        // Bottom
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp)) {
-            // Feed icon
-            if (articleListFeedIcon.value) {
-                FeedIcon(feedName = feedName, iconUrl = feedIconUrl)
-                Spacer(modifier = Modifier.width(10.dp))
-            }
-
-            // Article
-            Column(modifier = Modifier.weight(1f)) {
-
-                // Title
-                Row {
-                    Text(
-                        text = title,
-                        color =
-                            if (isTitleTranslated) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurface
-                            },
-                        style =
-                            MaterialTheme.typography.titleMedium
-                                .applyTextDirection(title.requiresBidi())
-                                .merge(fontSize = 17.5.sp, lineHeight = 24.sp),
-                        maxLines = Int.MAX_VALUE,
-                        overflow = TextOverflow.Clip,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (!articleListFeedName.value && !articleListDate.value) {
-                        if (isStarred) {
-                            StarredIcon()
-                        } else {
-                            Spacer(modifier = Modifier.width(16.dp))
-                        }
-                    }
-                }
-
-                // Description
-                if (
-                    articleListDesc != FlowArticleListDescPreference.NONE &&
-                        shortDescription.isNotBlank()
-                ) {
-                    Text(
-                        modifier = Modifier.padding(top = 6.dp),
-                        text = shortDescription,
-                        color =
-                            if (isShortDescriptionTranslated) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                        style =
-                            MaterialTheme.typography.bodySmall
-                                .applyTextDirection(shortDescription.requiresBidi())
-                                .merge(fontSize = 13.5.sp, lineHeight = 19.sp),
-                        maxLines =
-                            when (articleListDesc) {
-                                FlowArticleListDescPreference.LONG -> 4
-                                FlowArticleListDescPreference.SHORT -> 2
-                                else -> throw IllegalStateException()
-                            },
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-
-            // Image
-            if (imgData != null && articleListImage.value) {
+            // Left thumbnail image (if available)
+            val showImage = imgData != null && articleListImage.value
+            if (showImage) {
                 RYAsyncImage(
-                    modifier = Modifier.padding(start = 10.dp).size(80.dp).clip(Shape20),
+                    modifier =
+                        Modifier
+                            .size(76.dp)
+                            .clip(RoundedCornerShape(8.dp)),
                     data = imgData,
                     scale = Scale.FILL,
                     precision = Precision.INEXACT,
                     size = SIZE_1000,
                     contentScale = ContentScale.Crop,
                 )
+                Spacer(modifier = Modifier.width(14.dp))
+            }
+
+            // Right article text column
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Top,
+            ) {
+                // Title (dominant, eye-catching with warm low-contrast cream white)
+                Text(
+                    text = title,
+                    color =
+                        if (isTitleTranslated) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            Color(0xFFC8C2B6) onLight MaterialTheme.colorScheme.onSurface
+                        },
+                    style =
+                        MaterialTheme.typography.titleMedium
+                            .applyTextDirection(title.requiresBidi())
+                            .merge(
+                                fontSize = 17.5.sp,
+                                lineHeight = 23.sp,
+                                fontWeight = FontWeight.SemiBold,
+                            ),
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                // Description (shortened to 1 line preview in soft muted tone)
+                if (
+                    articleListDesc != FlowArticleListDescPreference.NONE &&
+                        shortDescription.isNotBlank()
+                ) {
+                    Text(
+                        modifier = Modifier.padding(top = 4.dp),
+                        text = shortDescription,
+                        color =
+                            if (isShortDescriptionTranslated) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                Color(0xFF6E6A63) onLight MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
+                            },
+                        style =
+                            MaterialTheme.typography.bodySmall
+                                .applyTextDirection(shortDescription.requiresBidi())
+                                .merge(fontSize = 13.sp, lineHeight = 17.5.sp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+
+                // Metadata footer row: Feed name + / + Time + Starred
+                val hasFeedName = articleListFeedName.value && feedName.isNotBlank()
+                val hasTime = articleListDate.value && !timeString.isNullOrBlank()
+                val hasFeedIcon = articleListFeedIcon.value && !feedIconUrl.isNullOrEmpty()
+
+                if (hasFeedName || hasTime || isStarred || hasFeedIcon) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(top = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        if (hasFeedIcon) {
+                            FeedIcon(
+                                modifier = Modifier.padding(end = 6.dp),
+                                feedName = feedName,
+                                iconUrl = feedIconUrl,
+                                size = 13.dp,
+                            )
+                        }
+
+                        val metadataText = buildString {
+                            if (hasFeedName) append(feedName)
+                            if (hasFeedName && hasTime) append(" / ")
+                            if (hasTime) append(timeString)
+                        }
+
+                        Text(
+                            text = metadataText,
+                            color = Color(0xFF504D47) onLight MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                            style =
+                                MaterialTheme.typography.labelMedium.merge(
+                                    fontSize = 11.5.sp
+                                ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+
+                        if (isStarred) {
+                            StarredIcon(modifier = Modifier.padding(start = 6.dp))
+                        }
+                    }
+                }
             }
         }
     }
