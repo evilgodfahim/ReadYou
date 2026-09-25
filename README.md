@@ -1,163 +1,181 @@
 <div align="center">
-    <img width="200" height="200" style="display: block; border: 1px solid #f5f5f5; border-radius: 9999px;" src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/icon.png">
+  <img width="160" height="160" style="display: block; border-radius: 36px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);" src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/icon.png" alt="Read You Icon">
+
+  # Read You
+
+  ### *Material You RSS Reader &bull; AI-Enhanced Edition*
+
+  <p align="center">
+    <strong>A modern, distraction-free RSS reader for Android crafted in Material Design 3, engineered for ocular comfort and powered by intelligent AI assistance.</strong>
+  </p>
+
+  <p align="center">
+    <a href="https://android.com"><img alt="Platform" src="https://img.shields.io/badge/Platform-Android-3DDC84?style=flat-square&logo=android&logoColor=white"></a>
+    <a href="https://kotlinlang.org"><img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.0+-7F52FF?style=flat-square&logo=kotlin&logoColor=white"></a>
+    <a href="https://developer.android.com/jetpack/compose"><img alt="Jetpack Compose" src="https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4?style=flat-square&logo=jetpackcompose&logoColor=white"></a>
+    <a href="https://m3.material.io/"><img alt="Material Design 3" src="https://img.shields.io/badge/Design-Material%203-c3e7ff?style=flat-square"></a>
+    <a href="https://ai.google.dev/"><img alt="Gemini AI" src="https://img.shields.io/badge/AI-Gemini%20Enabled-8E75FF?style=flat-square&logo=googlebard&logoColor=white"></a>
+    <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/License-GPL%20v3.0-blue?style=flat-square"></a>
+  </p>
+
+  <p align="center">
+    <a href="#key-highlights">Highlights</a> &bull;
+    <a href="#ocular-comfort--reading-flow">Design & Eye Care</a> &bull;
+    <a href="#ai-features--intelligence">AI Features</a> &bull;
+    <a href="#sync--cloud-integrations">Cloud Sync</a> &bull;
+    <a href="#tech-stack">Tech Stack</a> &bull;
+    <a href="#building-from-source">Building</a> &bull;
+    <a href="#license">License</a>
+  </p>
+
+  <br>
+
+  <img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/phoneScreenshots/startup.png" width="19%" alt="Startup Screen" />
+  <img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/phoneScreenshots/feeds.png" width="19%" alt="Feeds Screen" />
+  <img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/phoneScreenshots/flow.png" width="19%" alt="Flow Screen" />
+  <img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/phoneScreenshots/read.png" width="19%" alt="Reader Screen" />
+  <img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/phoneScreenshots/settings.png" width="19%" alt="Settings Screen" />
+
+  <br>
+  <br>
 </div>
 
-<br>
-<br>
-<br>
+---
 
-<div align="center">
-    <img alt="GitHub" src="https://img.shields.io/github/license/ReadYouApp/ReadYou?color=c3e7ff&style=flat-square">
-    <a target="_blank" href="https://github.com/ReadYouApp/ReadYou/releases">
-        <img alt="Version" src="https://img.shields.io/github/v/release/ReadYouApp/ReadYou?color=c3e7ff&label=version&style=flat-square">
-    </a>
-    <img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/ReadYouApp/ReadYou?color=c3e7ff&style=flat-square">
-    <br>
-    <a target="_blank" href="https://t.me/ReadYouApp">
-        <img alt="Telegram" src="https://img.shields.io/badge/Telegram-ReadYouApp-c3e7ff?logo=telegram&style=flat-square">
-    </a>
-    <a target="_blank" href="https://www.figma.com/file/ViBW8GbUgkTMmK6a80h8X1/Read-You?node-id=7028%3A23673">
-        <img alt="Figma" src="https://img.shields.io/badge/Figma-ReadYou-c3e7ff?logo=figma&style=flat-square">
-    </a>
-</div>
+## Overview
 
-<div align="center">
-    <h1>Read You (AI Enhanced Fork)</h1>
-    <p>An Android RSS reader presented in <a target="_blank" href="https://m3.material.io/">Material You</a> style.</p>
-    <p><strong>Note:</strong> This is a custom fork of the original ReadYou app. It features an improved <code>SyncManager</code> for more reliable background syncing and significantly increased API timeouts (up to 90 seconds) for AI-powered summarization and translation. This ensures that large articles do not fail prematurely when using long-running language models.</p>
-    <p>English&nbsp;&nbsp;|&nbsp;&nbsp;
-    <a target="_blank" href="https://github.com/ReadYouApp/ReadYou/blob/main/README-de.md">Deutsch</a>&nbsp;&nbsp;|&nbsp;&nbsp;
-    <a target="_blank" href="https://github.com/ReadYouApp/ReadYou/blob/main/README-zh-CN.md">简体中文</a>&nbsp;&nbsp;|&nbsp;&nbsp;
-    <a target="_blank" href="https://github.com/ReadYouApp/ReadYou/blob/main/README-zh-TW.md">繁體中文 (Outdated)</a>&nbsp;&nbsp;|&nbsp;&nbsp;
-    <a target="_blank" href="https://github.com/ReadYouApp/ReadYou/blob/main/README-fa.md">فارسی (Outdated)</a></p>
-    <br/>
-    <br/>
-    <img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/phoneScreenshots/startup.png" width="19.2%" alt="startup" />
-    <img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/phoneScreenshots/feeds.png" width="19.2%" alt="feeds" />
-    <img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/phoneScreenshots/flow.png" width="19.2%" alt="flow" />
-    <img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/phoneScreenshots/read.png" width="19.2%" alt="read" />
-    <img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/main/fastlane/metadata/android/en-US/images/phoneScreenshots/settings.png" width="19.2%" alt="settings" />
-    <br/>
-    <br/>
-</div>
+**Read You (AI-Enhanced Edition)** is a modern Android RSS reader built from the ground up with **Jetpack Compose** and **Material Design 3**. It combines the dynamic aesthetics of Material You with deeply considered reading ergonomics: Kindle-inspired low-contrast typography for pitch-black AMOLED screens, clean list hierarchies, background AI processing, and hands-free commute listening.
 
-## Features
+Whether you follow technical blogs, news outlets, or creative journals, Read You delivers a tranquil, focused reading experience free of algorithmic noise, tracking, or clutter.
 
-**Read You** is an Android RSS reader presented in [Material You](https://m3.material.io/) style.
+---
 
-The following are the progress made so far and the goals to be worked on in the near future:
+## Key Highlights
 
-- [x] Subscribe to RSS links
-- [x] Import or export OPML files
-- [x] Notification of new articles
-- [x] Article readability optimization
-- [x] Full content parse for original articles
-- [x] Multi-account
-- [x] Read aloud
-- [ ] Android widget
-- [ ] ...
+- 📖 **Kindle-Grade Ocular Comfort**: Thoughtfully calibrated warm cream/bone white headlines on pitch-black dark mode to eliminate night-time glare and visual strain.
+- 🎨 **Adaptive Material You Theming**: Dynamic Monet color extraction harmonized across light and dark themes.
+- 🤖 **On-Demand & Background AI**: Intelligent article summarization, accurate multi-lingual translation, and deep contextual chat backed by Google Gemini.
+- 🎧 **Commute Audio Briefing (TTS)**: Automatic text-to-speech audio playlist compiled directly from your unread article summaries.
+- 🔄 **Resilient Sync Engine**: Reliable background synchronization via `WorkManager`, persistent task retry queues, and extended 90-second timeouts for AI model workloads.
+- 🌐 **Universal RSS & Cloud Support**: Native local feeds with OPML import/export, plus full two-way sync with Google Reader APIs (FreshRSS, Inoreader, Miniflux, etc.) and Fever.
 
-## Integration
+---
 
-**Read You** integrates with some of third-party service APIs to support you in using your existing cloud accounts as data sources.
+## Ocular Comfort & Reading Flow
 
-- [x] Fever
-- [x] Google Reader
-- [x] FreshRSS
-- [ ] Miniflux
-- [ ] Tiny Tiny RSS
-- [ ] Inoreader
-- [ ] Feedly
-- [ ] Feedbin
-- [ ] ...
+### 🌙 Soothing Low-Contrast Typography
+Traditional dark modes often place pure `#FFFFFF` text against `#000000` backgrounds, causing harsh halos and retinal fatigue during prolonged reading. This edition introduces a warm, paper-like reading palette:
+- **Dominant Cream Headlines**: Styled in soft warm cream white (`#C8C2B6`) with semi-bold weighting and comfortable line height (`23.sp`), ensuring articles stand out immediately without searing the eyes.
+- **Harmonized Lower Layers**: Article preview snippets are tuned to warm slate (`#6E6A63`) and metadata to subtle charcoal (`#504D47`), creating a natural visual hierarchy.
+- **AMOLED-Optimized Dark Canvas**: True deep blacks maximize battery life on OLED panels while keeping content easy to scan.
 
-## Download
+### 📰 Curated Timeline Layout
+- **Left-Aligned Media**: Clean thumbnail placement on the leading side for quick identification.
+- **Subtle Visual Accent Bars**: Integrated vertical markers beside article cards to indicate unread status and structure list flow cleanly.
+- **Smart Description Truncation**: Concise previews prevent wall-of-text fatigue while preserving the context of each story.
+- **Full Article Readability**: Integrated content extraction strips away cookie notices, advertisements, and navigation bars for distraction-free reading.
 
-[<img src="https://s1.ax1x.com/2023/01/12/pSu1a36.png" alt="Get it on GitHub" height="80">](https://github.com/ReadYouApp/ReadYou/releases)
-[<img src="https://s1.ax1x.com/2023/01/12/pSnTZ0f.png"
-     alt="Get it on Telegram Channel"
-     height="80">](https://t.me/ReadYouApp)
-[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
-     alt="Get it on F-Droid"
-     height="80">](https://f-droid.org/packages/me.ash.reader/)
+---
 
-F-Droid releases can not upgrade to other releases and it is compiled, signed and distributed uniformly by [F-Droid](https://f-droid.org/docs/FAQ_-_General/).
+## AI Features & Intelligence
 
-## Nightly
+Read You integrates modern LLMs (including Google Gemini and OpenAI-compatible APIs) to transform how you consume knowledge:
 
-We offer Nightly versions for testing purposes. These versions include the latest features and improvements but may not be as stable as our regular releases. Please note that Nightly builds might have bugs and are not recommended for everyday use.
+| Feature | Description |
+| :--- | :--- |
+| **Instant Summarization** | Generate concise, actionable summaries for long-form essays, research papers, and news dispatches with one tap. |
+| **Background Precompute Queue** | As feeds synchronize, a dedicated SQLite-backed background worker (`AiSummaryPrecomputeWorker`) can pre-generate summaries so they are immediately available offline. |
+| **Contextual Translation** | Translate international articles into your preferred language while faithfully preserving Markdown formatting, headers, and code blocks. |
+| **Interactive AI Chat** | Ask follow-up questions, explore nuances, or request clarifications on any article with integrated web search grounding. |
+| **Commute Audio Brief** | Generates a sequential Text-to-Speech playlist of article summaries for hands-free listening while walking, driving, or commuting. |
+| **Extended Model Resilience** | Network pipelines support up to 90-second timeout thresholds and exponential retry policies, preventing timeouts during heavy generative model responses. |
 
-You can download the Nightly version from the following link:
+---
 
-<a target="_blank" href="https://github.com/ReadYouApp/ReadYou/actions/workflows/build_commit.yaml">Check Nightly Builds</a>
+## Sync & Cloud Integrations
 
-Choose the latest workflow from the GitHub Actions page and download the artifacts from the workflow's summary page (You may require logging in to GitHub).
+Read You acts as both a standalone offline RSS reader and a client for popular self-hosted and cloud sync services:
 
-**Remember to back up your data before trying the Nightly version in case of any issues.**
+- **Local Storage**: Completely private standalone reader with local SQLite database.
+- **OPML Management**: One-click import and export of your subscription lists.
+- **Google Reader API**: Seamless synchronization with:
+  - FreshRSS
+  - Inoreader
+  - Miniflux
+  - BazQux Reader
+  - The Old Reader
+- **Fever API**: Compatible with self-hosted Fever backends.
+- **Multi-Account**: Switch smoothly between independent accounts and sources.
 
-## Sponsorship
+---
 
-**Read You** is a free open source software that benefits from the open source community and every user can enjoy it's full functionality for free, so if you appreciate my current work, you can buy me a cup of coffee.☕️
+## Tech Stack & Architecture
 
-[<img src="https://s1.ax1x.com/2023/01/12/pSnHqpQ.png" alt="donate" height="80">](https://ash7.io/sponsor)
+Built following modern Android best practices and Clean Architecture:
 
-Thanks for all the love and support.❤️
+- **UI Framework**: [Jetpack Compose](https://developer.android.com/jetpack/compose) with Material Design 3 (M3).
+- **Language & Concurrency**: [Kotlin 2.0+](https://kotlinlang.org/) with Coroutines, `StateFlow`, and `SharedFlow`.
+- **Architecture**: MVVM / MVI pattern with unidirectional data flow and modular service layers.
+- **Local Persistence**: [Room Database](https://developer.android.com/training/data-storage/room) with type converters and robust schema migrations.
+- **Dependency Injection**: [Hilt](https://dagger.dev/hilt/) for clean component lifecycle management.
+- **Networking**: [OkHttp 4](https://square.github.io/okhttp/) & [Retrofit](https://square.github.io/retrofit/) with custom interceptors and resilient retry handlers.
+- **Background Processing**: [Android WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager) for power-efficient scheduled syncing and AI precomputation.
+- **Article Extraction**: [Readability4J](https://github.com/dankito/Readability4J) & [Rome Tools](https://github.com/rometools/rome) for robust feed ingestion.
+- **Audio & Speech**: Android Native Text-to-Speech (`TextToSpeech`) with segment duration calculation and queue management.
 
-## Localization
+---
 
-Thank you to each of the **Read You** translators, and if you would like to contribute, please submit a translation via [Weblate](https://hosted.weblate.org/engage/readyou/).
+## Building from Source
 
-[<img src="https://hosted.weblate.org/widgets/readyou/-/horizontal-auto.svg" alt="" />](https://hosted.weblate.org/engage/readyou/)
+### Prerequisites
+1. **Android Studio** (Ladybug | 2024.2.1 or newer recommended)
+2. **JDK 17** or **JDK 21**
+3. **Android SDK** (API Level 35 compile target, minimum API 26)
 
-## Build
-
-> Welcome to open a [pull request](https://github.com/ReadYouApp/ReadYou/pulls). [GitHub Actions](https://github.com/ReadYouApp/ReadYou/actions) automatically packages all flavors of apk files for each commit.
-
-**Read You** is based on [Jetpack Compose](https://developer.android.com/jetpack/compose) toolkit for building Android's native UI.
-
-1. First you need to get the source code of **Read You**.
-
-   ```shell
+### Steps
+1. Clone the repository:
+   ```bash
    git clone https://github.com/ReadYouApp/ReadYou.git
+   cd ReadYou
    ```
 
-2. Then open it via [Android Studio (latest version)](https://developer.android.com/studio).
+2. Open the project in Android Studio:
+   - Select **Open an Existing Project** and choose the cloned directory.
+   - Allow Gradle to sync dependencies.
 
-3. When you click the `▶ Run` button, it will be built and run automatically.
+3. Build and run:
+   - Select the `app` run configuration.
+   - Choose a physical device or Android Virtual Device (AVD).
+   - Click **Run ▶** (or build release APK via `Build > Build Bundle(s) / APK(s) > Build APK(s)`).
 
-    > In case of lag, please select Release version build.
+### AI Configuration
+To enable AI features (Summarization, Translation, Contextual Q&A):
+1. Open the app and navigate to **Settings &gt; AI Services**.
+2. Select your AI Provider (e.g., Google Gemini or custom OpenAI-compatible endpoint).
+3. Enter your API key securely.
+4. Customize your preferred prompt tone, summary length, and background precomputation preferences.
 
-## Credits
+---
 
-### Open Source Projects
+## Credits & Acknowledgements
 
-- [MusicYou](https://github.com/Kyant0/MusicYou)
-- [ParseRSS](https://github.com/muhrifqii/ParseRSS)
-- [Readability4J](https://github.com/dankito/Readability4J)
-- [opml-parser](https://github.com/mdewilde/opml-parser)
-- [compose-html](https://github.com/ireward/compose-html)
-- [Rome](https://github.com/rometools/rome)
-- [Feeder](https://gitlab.com/spacecowboy/Feeder)
-- [Seal](https://github.com/JunkFood02/Seal)
-- [news-flash](https://gitlab.com/news-flash)
-- [besticon](https://github.com/mat/besticon)
-- [Jiffy Reader](https://github.com/ansh/jiffyreader.com)
-- ...
+Read You stands on the shoulders of remarkable open-source projects and community contributors:
 
-### Special Thanks
+- **Upstream Project**: Thanks to the original creator **Ash** and all contributors to [Read You](https://github.com/ReadYouApp/ReadYou).
+- **Design Inspiration**: **@Kyant0** for the Monet engine implementation and original aesthetic inspiration.
+- **Open Source Libraries**:
+  - [MusicYou](https://github.com/Kyant0/MusicYou) &bull; [ParseRSS](https://github.com/muhrifqii/ParseRSS) &bull; [Readability4J](https://github.com/dankito/Readability4J)
+  - [opml-parser](https://github.com/mdewilde/opml-parser) &bull; [Rome](https://github.com/rometools/rome) &bull; [Seal](https://github.com/JunkFood02/Seal)
+  - [besticon](https://github.com/mat/besticon) &bull; [Jiffy Reader](https://github.com/ansh/jiffyreader.com)
+- **Supporting Platforms**:
+  - [JetBrains](https://www.jetbrains.com/) for open-source development tooling.
+  - [Weblate](https://hosted.weblate.org/) for crowd-sourced international localization.
 
-[<img src="https://avatars.githubusercontent.com/u/76829190?v=4" width="180" height="180" style="display: block; border: 1px solid #f5f5f5; border-radius: 9999px;"/>](https://github.com/Kyant0)
-
-Thanks to **@Kyant0** for the design inspiration and Monet engine implementation for **Read You**.
-
-[<img src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.png" width="200" alt="Copyright © 2000-2023 JetBrains s.r.o. JetBrains and the JetBrains logo are registered trademarks of JetBrains s.r.o."/>](https://www.jetbrains.com/)
-
-Thanks to **JetBrains** for allocating free open-source licences for IDEs for **Read You**.
-
-[<img src="https://hosted.weblate.org/widgets/readyou/-/287x66-white.png"  width="200"/>](https://hosted.weblate.org/engage/readyou/)
-
-Thanks to **Weblate** for providing free hosting of open source projects for **Read You**.
+---
 
 ## License
 
-GNU GPL v3.0 © [Read You](https://github.com/ReadYouApp/ReadYou/blob/main/LICENSE)
+Read You is free software licensed under the **GNU General Public License v3.0 (GPL-3.0)**.  
+You are free to use, modify, and redistribute this application in accordance with the terms of the license.
+
+See the [LICENSE](LICENSE) file for complete details.
